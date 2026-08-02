@@ -79,6 +79,18 @@ snooker words — screw, stun, top — but they stay display language only. Kid-
 deliberately — no side spin, no 13-cell grid.
 _Avoid_: tip, screw/stun/follow as field values
 
+**Pocket**:
+One of the six pockets, named by table position: `top-left`, `top-middle`, `top-right`,
+`bottom-left`, `bottom-middle`, `bottom-right` (landscape, baulk at the left). Part of
+every Shot — the Suggested pocket is prefilled so Alex only touches it when he means to.
+Judged in the Reveal only when the Step authors a coached pocket; otherwise display-only.
+_Avoid_: hole, bag
+
+**Suggested pocket**:
+The easiest pocket for the current pot — straightest cut from where the white sits, ties
+by distance. Prefilled as the Shot's pocket; drives nothing once Alex overrides it.
+_Avoid_: default pocket, computer's choice
+
 **Leave**:
 Where a Shot leaves the white — the predicted resting spot of the cue ball, computed by
 a kid-plausible heuristic (pot always succeeds; tangent line bent by Spin; distance from

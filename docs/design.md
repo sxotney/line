@@ -86,6 +86,23 @@ he commits his own.
   unchanged; the cannon lives in the coaching prose and where the Leave puts the white.
 - Coaching prose remains placeholder-quality snooker, to be refined with Carl/Brian.
 
+### Added in M5 (2026-08-02) — Alex picks the pocket
+
+- **Pocket** joins the Shot: six named pockets (`top-left` … `bottom-right`); every Shot
+  carries one. On tapping a ball the **Suggested pocket** (straightest cut from the
+  white, ties by distance — the old natural-pocket heuristic, now exported) lights up
+  with a ring; while the ShotPicker is open Alex can tap a different pocket on the
+  table. Commit is still strength + spin — the pocket adds no step when the default is
+  right.
+- The Leave pots along **the Shot's pocket**, not a guess — fixing the wrong-Leave
+  problem the heuristic had on cut shots.
+- Steps may author `pocket` + `acceptablePocket`. Authored → judged as a fourth axis
+  with the usual matched/alternative/divergence treatment; not authored → any pocket is
+  fine and the choice stays display-only (ADR 0005 boundary holds).
+- Reveal copy names the pocket only when the axis is judged and differs.
+- Coached pockets are authored where the teaching needs them (cushion-work and
+  positional Setups first), left off elsewhere.
+
 ### Out of scope — deliberately deferred
 - In-app editor (ADR 0003) · cue-ball position / "where you leave it" · side spin ·
   the final colour clearance (yellow→black, a fixed order — a position exercise, not

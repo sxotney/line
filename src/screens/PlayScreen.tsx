@@ -38,6 +38,15 @@ export function PlayScreen() {
     loadLadderIndex().then((loaded) => setIndex(clampToCatalogue(loaded)));
   }, []);
 
+  // Animate the white along its route only when a shot was just committed.
+  // Undo and Try again shrink the line — the white repositions instantly
+  // rather than replaying an old shot backwards. MUST stay above the early
+  // returns below: a hook after them blanks the whole app the moment the
+  // Reveal opens ("rendered fewer hooks than expected").
+  const previousLineLength = useRef(line.length);
+  const lineGrew = line.length > previousLineLength.current;
+  previousLineLength.current = line.length;
+
   const setup = SETUPS[index];
   if (!setup) return null;
 
@@ -97,13 +106,6 @@ export function PlayScreen() {
   const tableBalls = setup.balls.map((ball) =>
     ball.kind === "cue" ? { ...ball, ...simulated.cue } : ball,
   );
-
-  // Animate the white along its route only when a shot was just committed.
-  // Undo and Try again shrink the line — the white repositions instantly
-  // rather than replaying an old shot backwards.
-  const previousLineLength = useRef(line.length);
-  const lineGrew = line.length > previousLineLength.current;
-  previousLineLength.current = line.length;
 
   return (
     <View style={styles.screen}>

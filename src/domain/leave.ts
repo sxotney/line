@@ -39,7 +39,8 @@ const ROLL_RETENTION = 5 / 7;
 const SPIN_PULL = 2 / 7;
 // Tuning knobs, expected to be adjusted after watching Alex use it. The
 // relational test style keeps retuning cheap.
-const MAX_TRAVEL = 4800; // mm at strength 100 with all speed retained
+// Sized so a firm straight follow (2/7 retention) still runs ~1.7m.
+const MAX_TRAVEL = 7000; // mm at strength 100 with all speed retained
 const CUSHION_RESTITUTION = 0.5; // a cushion eats about half the run
 
 const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });

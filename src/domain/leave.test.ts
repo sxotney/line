@@ -112,7 +112,7 @@ describe("simulateLine — the single-shot heuristic", () => {
       ),
     };
     // Soft, so the tangent run stays clear of the cushions.
-    const rest = simulateLine(cutSetup, [shot("r1", 20, "centre")]).cue;
+    const rest = simulateLine(cutSetup, [shot("r1", 12, "centre")]).cue;
     // Pot direction and contact point derived from the spec's ghost-ball
     // definition, not from the implementation.
     const potLength = distance(RED, CORNER);
@@ -173,7 +173,7 @@ describe("simulateLine — the single-shot heuristic", () => {
         return b;
       }),
     };
-    const rest = simulateLine(halfBallSetup, [shot("r1", 15, "top", "top-right")]).cue;
+    const rest = simulateLine(halfBallSetup, [shot("r1", 12, "top", "top-right")]).cue;
     const contact = { x: 2862 - 60 * Math.SQRT1_2, y: 707 + 60 * Math.SQRT1_2 };
     const travelled = distance(rest, contact);
     expect(travelled).toBeGreaterThan(0);

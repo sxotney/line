@@ -11,10 +11,16 @@ export interface TableViewProps {
   tappable: BallId[];
   onTapBall: (id: BallId) => void;
   highlight?: BallId | null;
+  // Balls already down in the Simulated table (potted reds during
+  // Planning). Ghosted, badge still readable. Colours never appear here —
+  // they re-spot.
+  potted?: BallId[];
 }
 
+const GHOST_OPACITY = 0.25;
+
 export function TableView({
-  balls, sequence, tappable, onTapBall, highlight,
+  balls, sequence, tappable, onTapBall, highlight, potted = [],
 }: TableViewProps) {
   return (
     <Svg viewBox={viewBox()} width="100%" height="100%">
@@ -39,6 +45,7 @@ export function TableView({
           return acc;
         }, []);
         const isTappable = tappable.includes(ball.id);
+        const isPotted = potted.includes(ball.id);
         const fill = ball.kind === "colour"
           ? (ball.colour ? BALL_FILL[ball.colour] : MISSING_COLOUR_FILL)
           : BALL_FILL[ball.kind];
@@ -50,9 +57,11 @@ export function TableView({
               stroke={highlight === ball.id ? "#ffffff" : isTappable ? "#ffffff" : "none"}
               strokeWidth={highlight === ball.id ? 10 : isTappable ? 4 : 0}
               opacity={
-                isTappable || positions.length > 0 || ball.kind === "cue" || highlight === ball.id
-                  ? 1
-                  : 0.55
+                isPotted
+                  ? GHOST_OPACITY
+                  : isTappable || positions.length > 0 || ball.kind === "cue" || highlight === ball.id
+                    ? 1
+                    : 0.55
               }
               onPress={() => onTapBall(ball.id)}
             />

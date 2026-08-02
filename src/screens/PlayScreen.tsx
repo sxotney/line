@@ -94,6 +94,7 @@ export function PlayScreen() {
           tappable={pendingBall === null ? tappableBalls(setup, line) : []}
           onTapBall={onTapBall}
           highlight={pendingBall}
+          potted={simulated.pottedReds}
         />
       </View>
       {pendingBall !== null ? (

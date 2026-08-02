@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { Result } from "../domain/evaluate";
+import { strengthBand } from "../domain/leave";
 import type { Setup } from "../domain/types";
 import { ballNamer } from "./ballNames";
 import { stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
@@ -52,7 +53,8 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
           const chosen: ShotWords | null = stepResult.chosen
             ? {
                 ball: nameOf(stepResult.chosen.ball),
-                strength: stepResult.chosen.strength,
+                // The copy speaks in bands, not raw slider values.
+                strength: strengthBand(stepResult.chosen.strength),
                 spin: stepResult.chosen.spin,
               }
             : null;

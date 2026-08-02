@@ -5,7 +5,7 @@ import type { Result } from "../domain/evaluate";
 const make = (verdicts: Result["steps"][number]["verdict"][]): Result => ({
   steps: verdicts.map((verdict, step) => ({
     step,
-    chosen: { ball: "x", strength: "medium", spin: "centre" },
+    chosen: { ball: "x", strength: 50, spin: "centre" },
     ballVerdict: verdict,
     strengthVerdict: "matched",
     spinVerdict: "matched",

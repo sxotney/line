@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { evaluate } from "./evaluate";
 import type { Setup, Shot, Spin, Strength } from "./types";
 
+// A representative slider value inside each coached band — the shot Alex
+// would play when he means that band.
+const BAND_VALUE: Record<Strength, number> = { soft: 20, medium: 50, firm: 85 };
+
 const setup: Setup = {
   id: "s1",
   ladderIndex: 0,
@@ -36,7 +40,7 @@ function coachedShot(
   const step = setup.coachedLine[index]!;
   return {
     ball: step.ball,
-    strength: step.strength,
+    strength: BAND_VALUE[step.strength],
     spin: step.spin,
     ...override,
   };
@@ -69,22 +73,36 @@ describe("evaluate", () => {
     expect(result.firstDivergence).toBeNull();
   });
 
-  it("marks an acceptable strength as an alternative on that axis only", () => {
+  it("marks a strength in the acceptable band as an alternative on that axis only", () => {
     const line = coachedFull();
-    line[1] = coachedShot(1, { strength: "medium" as Strength });
+    line[1] = coachedShot(1, { strength: BAND_VALUE.medium });
     const result = evaluate(setup, line);
     expect(result.steps[1].strengthVerdict).toBe("alternative");
     expect(result.steps[1].ballVerdict).toBe("matched");
     expect(result.steps[1].verdict).toBe("alternative");
   });
 
-  it("marks a strength outside the acceptable set as a divergence", () => {
+  it("marks a strength outside the acceptable bands as a divergence", () => {
     const line = coachedFull();
-    line[0] = coachedShot(0, { strength: "firm" as Strength });
+    line[0] = coachedShot(0, { strength: BAND_VALUE.firm });
     const result = evaluate(setup, line);
     expect(result.steps[0].strengthVerdict).toBe("divergence");
     expect(result.steps[0].verdict).toBe("divergence");
     expect(result.firstDivergence).toBe(0);
+  });
+
+  it("judges any value in the coached band as matched, right up to the boundary", () => {
+    // Step 0 coaches medium: 34 and 66 are both medium, 33 and 67 are not.
+    for (const value of [34, 66]) {
+      const line = coachedFull();
+      line[0] = coachedShot(0, { strength: value });
+      expect(evaluate(setup, line).steps[0].strengthVerdict).toBe("matched");
+    }
+    for (const value of [33, 67]) {
+      const line = coachedFull();
+      line[0] = coachedShot(0, { strength: value });
+      expect(evaluate(setup, line).steps[0].strengthVerdict).toBe("divergence");
+    }
   });
 
   it("marks the spin axis independently of the ball axis", () => {
@@ -131,7 +149,7 @@ describe("evaluate", () => {
       ],
     };
     const line: Shot[] = respot.coachedLine.map((s) => ({
-      ball: s.ball, strength: s.strength, spin: s.spin,
+      ball: s.ball, strength: BAND_VALUE[s.strength], spin: s.spin,
     }));
     const result = evaluate(respot, line);
     expect(result.steps.map((s) => s.verdict)).toEqual([

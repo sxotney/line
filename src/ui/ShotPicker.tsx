@@ -1,32 +1,99 @@
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import {
-  SPINS, STRENGTHS, type Spin, type Strength,
-} from "../domain/types";
+import React, { useRef, useState } from "react";
+import { PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
+import { SPINS, STRENGTHS, type Spin } from "../domain/types";
 
 export interface ShotPickerProps {
   ballName: string;
-  onCommit: (strength: Strength, spin: Spin) => void;
+  onCommit: (strength: number, spin: Spin) => void;
   onCancel: () => void;
+}
+
+const clamp = (value: number) => Math.min(100, Math.max(0, value));
+
+// The strength slider: a continuous 0–100 track with the three Strength
+// bands marked on it. Dragging (or tapping) moves the thumb; releasing
+// counts as "strength chosen". The raw value drives the Leave; judging
+// happens band-to-band (CONTEXT.md, "Strength band").
+function StrengthSlider({
+  value,
+  chosen,
+  onChange,
+  onChosen,
+}: {
+  value: number;
+  chosen: boolean;
+  onChange: (value: number) => void;
+  onChosen: () => void;
+}) {
+  const trackWidth = useRef(0);
+  const grabValue = useRef(0);
+
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        const width = trackWidth.current;
+        if (width <= 0) return;
+        const next = clamp((evt.nativeEvent.locationX / width) * 100);
+        grabValue.current = next;
+        onChange(next);
+      },
+      onPanResponderMove: (_evt, gesture) => {
+        const width = trackWidth.current;
+        if (width <= 0) return;
+        onChange(clamp(grabValue.current + (gesture.dx / width) * 100));
+      },
+      onPanResponderRelease: onChosen,
+      onPanResponderTerminate: onChosen,
+    }),
+  ).current;
+
+  return (
+    <View>
+      <View
+        style={styles.track}
+        onLayout={(e) => { trackWidth.current = e.nativeEvent.layout.width; }}
+        {...pan.panHandlers}
+      >
+        {/* Band dividers at the soft/medium and medium/firm boundaries. */}
+        <View style={[styles.divider, { left: "33%" }]} />
+        <View style={[styles.divider, { left: "66%" }]} />
+        <View
+          style={[
+            styles.thumb,
+            { left: `${value}%` },
+            !chosen && styles.thumbUnchosen,
+          ]}
+        />
+      </View>
+      <View style={styles.bandLabels}>
+        {STRENGTHS.map((band) => (
+          <Text key={band} style={styles.bandLabel}>{band}</Text>
+        ))}
+      </View>
+    </View>
+  );
 }
 
 // Shown after a ball is tapped: pick how the shot is played. Committing
 // happens the moment both a strength and a spin are chosen — no extra
 // confirm tap for a 10-year-old to forget.
 export function ShotPicker({ ballName, onCommit, onCancel }: ShotPickerProps) {
-  const [strength, setStrength] = useState<Strength | null>(null);
+  const [strength, setStrength] = useState(50);
+  const [strengthChosen, setStrengthChosen] = useState(false);
   const [spin, setSpin] = useState<Spin | null>(null);
 
-  const pickStrength = (s: Strength) => {
+  const chooseStrength = () => {
     if (spin !== null) {
-      onCommit(s, spin);
+      onCommit(strength, spin);
       return;
     }
-    setStrength(s);
+    setStrengthChosen(true);
   };
 
   const pickSpin = (s: Spin) => {
-    if (strength !== null) {
+    if (strengthChosen) {
       onCommit(strength, s);
       return;
     }
@@ -36,17 +103,12 @@ export function ShotPicker({ ballName, onCommit, onCancel }: ShotPickerProps) {
   return (
     <View style={styles.panel}>
       <Text style={styles.title}>{ballName} — how do you play it?</Text>
-      <View style={styles.row}>
-        {STRENGTHS.map((s) => (
-          <Pressable
-            key={s}
-            style={[styles.option, strength === s && styles.selected]}
-            onPress={() => pickStrength(s)}
-          >
-            <Text style={styles.optionText}>{s}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <StrengthSlider
+        value={strength}
+        chosen={strengthChosen}
+        onChange={setStrength}
+        onChosen={chooseStrength}
+      />
       <View style={styles.row}>
         {SPINS.map((s) => (
           <Pressable
@@ -69,6 +131,22 @@ const styles = StyleSheet.create({
   panel: { padding: 12, gap: 8 },
   title: { color: "#f7f4ec", fontSize: 16, fontWeight: "600" },
   row: { flexDirection: "row", gap: 8 },
+  track: {
+    height: 44, borderRadius: 8, justifyContent: "center",
+    backgroundColor: "#1c3527",
+  },
+  divider: {
+    position: "absolute", top: 8, bottom: 8, width: 1,
+    backgroundColor: "#6f8579",
+  },
+  thumb: {
+    position: "absolute", top: 4, width: 36, height: 36, borderRadius: 18,
+    marginLeft: -18, backgroundColor: "#1d5fa8",
+    borderWidth: 2, borderColor: "#f7f4ec",
+  },
+  thumbUnchosen: { opacity: 0.5 },
+  bandLabels: { flexDirection: "row", marginTop: 2 },
+  bandLabel: { flex: 1, textAlign: "center", color: "#b9cbbf", fontSize: 13 },
   option: {
     flex: 1, paddingVertical: 14, borderRadius: 8, alignItems: "center",
     borderWidth: 1, borderColor: "#6f8579",

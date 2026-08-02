@@ -5,7 +5,7 @@ import { evaluate, type Result } from "../domain/evaluate";
 import {
   appendShot, isLineComplete, tappableBalls, undoTap,
 } from "../domain/planning";
-import type { BallId, Shot, Spin, Strength } from "../domain/types";
+import type { BallId, Shot, Spin } from "../domain/types";
 import { nextIndex } from "../domain/ladder";
 import { loadLadderIndex, saveLadderIndex } from "../state/ladderStorage";
 import { ballNamer } from "../ui/ballNames";
@@ -62,7 +62,7 @@ export function PlayScreen() {
     );
   }
 
-  const commitShot = (strength: Strength, spin: Spin) => {
+  const commitShot = (strength: number, spin: Spin) => {
     if (pendingBall === null) return;
     const shot: Shot = { ball: pendingBall, strength, spin };
     setLine((current) => appendShot(setup, current, shot));

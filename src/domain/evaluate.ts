@@ -1,3 +1,4 @@
+import { strengthBand } from "./leave";
 import type { Setup, Shot, Spin, Step, Strength } from "./types";
 
 export type StepVerdict = "matched" | "alternative" | "divergence";
@@ -47,8 +48,11 @@ function judgeShot(step: Step, index: number, chosen: Shot | null): StepResult {
     };
   }
   const ballVerdict = judgeAxis(chosen.ball, step.ball, step.acceptable);
+  // The slider value is judged by the band it falls in (CONTEXT.md,
+  // "Strength band") — coaching stays band-to-band while the raw value
+  // drives the Leave.
   const strengthVerdict = judgeAxis<Strength>(
-    chosen.strength, step.strength, step.acceptableStrength,
+    strengthBand(chosen.strength), step.strength, step.acceptableStrength,
   );
   const spinVerdict = judgeAxis<Spin>(chosen.spin, step.spin, step.acceptableSpin);
   return {

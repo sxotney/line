@@ -89,6 +89,9 @@ export function PlayScreen() {
     <View style={styles.screen}>
       <View style={styles.table}>
         <TableView
+          // Keyed by setup: a new Setup mounts a fresh table, so the white
+          // never slides across from the previous Setup's position.
+          key={setup.id}
           balls={tableBalls}
           sequence={line.map((shot) => shot.ball)}
           tappable={pendingBall === null ? tappableBalls(setup, line) : []}

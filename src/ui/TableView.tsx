@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing } from "react-native";
 import Svg, { Circle, Rect, Text as SvgText } from "react-native-svg";
 import type { Ball, BallId } from "../domain/types";
 import { TABLE } from "../domain/types";
@@ -18,6 +19,29 @@ export interface TableViewProps {
 }
 
 const GHOST_OPACITY = 0.25;
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+// The white slides to each new Leave rather than teleporting — following
+// the move is half the teaching. Everything else on the table stays still,
+// so only the cue ball pays for an animated wrapper.
+function SlidingCueBall({ x, y, fill }: { x: number; y: number; fill: string }) {
+  const position = useRef(new Animated.ValueXY({ x, y })).current;
+
+  useEffect(() => {
+    Animated.timing(position, {
+      toValue: { x, y },
+      duration: 450,
+      easing: Easing.out(Easing.cubic),
+      // SVG attributes can't ride the native driver.
+      useNativeDriver: false,
+    }).start();
+  }, [position, x, y]);
+
+  return (
+    <AnimatedCircle cx={position.x} cy={position.y} r={BALL_RADIUS} fill={fill} />
+  );
+}
 
 export function TableView({
   balls, sequence, tappable, onTapBall, highlight, potted = [],
@@ -49,6 +73,11 @@ export function TableView({
         const fill = ball.kind === "colour"
           ? (ball.colour ? BALL_FILL[ball.colour] : MISSING_COLOUR_FILL)
           : BALL_FILL[ball.kind];
+        if (ball.kind === "cue") {
+          return (
+            <SlidingCueBall key={ball.id} x={ball.x} y={ball.y} fill={fill} />
+          );
+        }
         return (
           <React.Fragment key={ball.id}>
             <Circle
@@ -59,7 +88,7 @@ export function TableView({
               opacity={
                 isPotted
                   ? GHOST_OPACITY
-                  : isTappable || positions.length > 0 || ball.kind === "cue" || highlight === ball.id
+                  : isTappable || positions.length > 0 || highlight === ball.id
                     ? 1
                     : 0.55
               }

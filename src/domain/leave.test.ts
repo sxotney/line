@@ -86,13 +86,15 @@ describe("simulateLine — the single-shot heuristic", () => {
     expect(distance(firmRest, RED)).toBeGreaterThan(distance(softRest, RED));
   });
 
-  it("keeps the white inside the cushions even badly overhit", () => {
-    for (const spin of ["low", "centre", "top"] as const) {
+  it("bounces an overhit off the cushion rather than parking on it", () => {
+    for (const spin of ["low", "top"] as const) {
       const rest = leaveOf(shot("r1", 100, spin));
-      expect(rest.x).toBeGreaterThanOrEqual(BALL_RADIUS);
-      expect(rest.x).toBeLessThanOrEqual(TABLE.width - BALL_RADIUS);
-      expect(rest.y).toBeGreaterThanOrEqual(BALL_RADIUS);
-      expect(rest.y).toBeLessThanOrEqual(TABLE.height - BALL_RADIUS);
+      // A reflection leaves the white well clear of every cushion here —
+      // a clamp-only implementation would park it exactly on one.
+      expect(rest.x).toBeGreaterThan(BALL_RADIUS + 100);
+      expect(rest.x).toBeLessThan(TABLE.width - BALL_RADIUS - 100);
+      expect(rest.y).toBeGreaterThan(BALL_RADIUS + 100);
+      expect(rest.y).toBeLessThan(TABLE.height - BALL_RADIUS - 100);
     }
   });
 
@@ -161,11 +163,13 @@ describe("simulateLine — the fold", () => {
       shot("black", 30, "top"),
       shot("r2", 70, "low"),
     ];
-    expect(simulateLine(straightSetup, line.slice(0, 2))).toEqual(
-      simulateLine(straightSetup, [line[0]!, line[1]!]),
-    );
-    expect(simulateLine(straightSetup, line.slice(0, 1))).toEqual(
-      simulateLine(straightSetup, [line[0]!]),
-    );
+    // Capture the two-shot state BEFORE the full line is ever simulated,
+    // then re-fold after it: undo must reproduce the earlier state exactly,
+    // which fails if any state leaks between calls.
+    const beforeThird = simulateLine(straightSetup, line.slice(0, 2));
+    const full = simulateLine(straightSetup, line);
+    expect(full.cue).not.toEqual(beforeThird.cue);
+    expect(full.pottedReds).toEqual(["r1", "r2"]);
+    expect(simulateLine(straightSetup, line.slice(0, 2))).toEqual(beforeThird);
   });
 });

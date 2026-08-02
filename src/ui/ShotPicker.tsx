@@ -23,10 +23,20 @@ function StrengthSlider({
   value: number;
   chosen: boolean;
   onChange: (value: number) => void;
-  onChosen: () => void;
+  onChosen: (value: number) => void;
 }) {
   const trackWidth = useRef(0);
   const grabValue = useRef(0);
+  const currentValue = useRef(value);
+
+  // The responder is created once, so its handlers must read the latest
+  // callbacks through refs — capturing them directly would freeze the
+  // first render's closures (and, e.g., never commit in the spin-first
+  // flow because that closure still sees spin === null).
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const onChosenRef = useRef(onChosen);
+  onChosenRef.current = onChosen;
 
   const pan = useRef(
     PanResponder.create({
@@ -37,15 +47,18 @@ function StrengthSlider({
         if (width <= 0) return;
         const next = clamp((evt.nativeEvent.locationX / width) * 100);
         grabValue.current = next;
-        onChange(next);
+        currentValue.current = next;
+        onChangeRef.current(next);
       },
       onPanResponderMove: (_evt, gesture) => {
         const width = trackWidth.current;
         if (width <= 0) return;
-        onChange(clamp(grabValue.current + (gesture.dx / width) * 100));
+        const next = clamp(grabValue.current + (gesture.dx / width) * 100);
+        currentValue.current = next;
+        onChangeRef.current(next);
       },
-      onPanResponderRelease: onChosen,
-      onPanResponderTerminate: onChosen,
+      onPanResponderRelease: () => onChosenRef.current(currentValue.current),
+      onPanResponderTerminate: () => onChosenRef.current(currentValue.current),
     }),
   ).current;
 
@@ -84,11 +97,14 @@ export function ShotPicker({ ballName, onCommit, onCancel }: ShotPickerProps) {
   const [strengthChosen, setStrengthChosen] = useState(false);
   const [spin, setSpin] = useState<Spin | null>(null);
 
-  const chooseStrength = () => {
+  // Receives the released slider value directly rather than reading state,
+  // so a fast tap-and-release can't commit a value one render behind.
+  const chooseStrength = (value: number) => {
     if (spin !== null) {
-      onCommit(strength, spin);
+      onCommit(value, spin);
       return;
     }
+    setStrength(value);
     setStrengthChosen(true);
   };
 

@@ -91,6 +91,18 @@ describe("evaluate", () => {
     expect(result.firstDivergence).toBe(0);
   });
 
+  it("judges a boundary value in the acceptable band as an alternative", () => {
+    // Step 1 coaches soft with medium acceptable: 34 is the first medium
+    // value (alternative), 33 the last soft value (matched).
+    const at = (value: number) => {
+      const line = coachedFull();
+      line[1] = coachedShot(1, { strength: value });
+      return evaluate(setup, line).steps[1].strengthVerdict;
+    };
+    expect(at(34)).toBe("alternative");
+    expect(at(33)).toBe("matched");
+  });
+
   it("judges any value in the coached band as matched, right up to the boundary", () => {
     // Step 0 coaches medium: 34 and 66 are both medium, 33 and 67 are not.
     for (const value of [34, 66]) {

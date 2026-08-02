@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { COLOURS, SPINS, STRENGTHS, type Setup } from "../domain/types";
+import { COLOURS, LESSONS, SPINS, STRENGTHS, type Setup } from "../domain/types";
 
 const ballSchema = z
   .object({
@@ -27,6 +27,7 @@ export const setupSchema = z
   .object({
     id: z.string().min(1),
     ladderIndex: z.number().int().nonnegative(),
+    lesson: z.enum(LESSONS),
     title: z.string().optional(),
     balls: z.array(ballSchema).min(2),
     coachedLine: z.array(stepSchema).min(1),

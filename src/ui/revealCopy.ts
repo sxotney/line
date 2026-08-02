@@ -1,4 +1,25 @@
 import type { Result } from "../domain/evaluate";
+import type { Lesson } from "../domain/types";
+
+// The Reveal opens by naming what the position was for — the coach
+// framing the lesson, never a category label (ADR 0004). The enum's
+// kebab-case must never surface.
+const LESSON_LINE: Record<Lesson, string> = {
+  "positional-play":
+    "This one was about position — leaving the white somewhere the next shot is easy.",
+  cluster:
+    "This one was about the cluster — when to open it, and when to leave it alone.",
+  "cushion-work":
+    "This one was about the cushions — letting the white run off them to where you need it.",
+  "awkward-ball-first":
+    "This one was about the awkward ball — taking it early, while you still have the angle.",
+  "colour-choice":
+    "This one was about choosing the right colour after each red.",
+};
+
+export function lessonLine(lesson: Lesson): string {
+  return LESSON_LINE[lesson];
+}
 
 export function verdictHeadline(result: Result): string {
   if (result.firstDivergence !== null) {

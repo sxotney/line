@@ -15,6 +15,7 @@ const raw = [
   {
     id: "open-three",
     ladderIndex: 0,
+    lesson: "colour-choice",
     title: "Three open reds",
     balls: [
       ...colours,
@@ -35,6 +36,7 @@ const raw = [
   {
     id: "awkward-first",
     ladderIndex: 1,
+    lesson: "awkward-ball-first",
     title: "One red on the cushion",
     balls: [
       ...colours,
@@ -55,6 +57,7 @@ const raw = [
   {
     id: "hold-the-pack",
     ladderIndex: 2,
+    lesson: "cluster",
     title: "Two loose, two in a cluster",
     balls: [
       ...colours,

@@ -7,6 +7,7 @@ import type { BallId, Setup, Shot } from "./types";
 const setup: Setup = {
   id: "s1",
   ladderIndex: 0,
+  lesson: "positional-play",
   balls: [
     { id: "r1", kind: "red", x: 1, y: 1 },
     { id: "r2", kind: "red", x: 2, y: 2 },

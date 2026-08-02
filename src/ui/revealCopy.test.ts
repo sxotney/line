@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
+import { lessonLine, stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
+import { LESSONS } from "../domain/types";
 import type { Result } from "../domain/evaluate";
 
 const make = (verdicts: Result["steps"][number]["verdict"][]): Result => ({
@@ -48,8 +49,24 @@ describe("verdictHeadline", () => {
       stepLine(5, shot("red 2"), shot("red 2", "firm", "top"), "divergence", "matched"),
       stepLine(6, shot("black"), null, "divergence", "divergence"),
     ];
-    const all = [...headlines, ...steps].join(" ");
+    const all = [...headlines, ...steps, ...LESSONS.map(lessonLine)].join(" ");
     expect(all).not.toMatch(/score|%|streak|wrong|incorrect|fail|mistake|error/i);
+  });
+});
+
+describe("lessonLine", () => {
+  it("opens every Lesson as the coach talking, never as a label", () => {
+    for (const lesson of LESSONS) {
+      const line = lessonLine(lesson);
+      expect(line).toMatch(/^This one was about /);
+      // The enum's kebab-case never surfaces to Alex.
+      expect(line).not.toMatch(/[a-z]-[a-z]/);
+      expect(line).not.toMatch(/level|category|difficulty|type|tag|theme/i);
+    }
+  });
+
+  it("names the cluster lesson in plain snooker", () => {
+    expect(lessonLine("cluster")).toMatch(/cluster/i);
   });
 });
 

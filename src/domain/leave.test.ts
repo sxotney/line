@@ -32,6 +32,7 @@ const CUE = { x: 2569, y: 1000 };
 const straightSetup: Setup = {
   id: "s1",
   ladderIndex: 0,
+  lesson: "positional-play",
   balls: [
     { id: "r1", kind: "red", ...RED },
     { id: "r2", kind: "red", x: 600, y: 500 },

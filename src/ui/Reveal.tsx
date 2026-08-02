@@ -4,7 +4,7 @@ import type { Result } from "../domain/evaluate";
 import { strengthBand } from "../domain/leave";
 import type { Setup } from "../domain/types";
 import { ballNamer } from "./ballNames";
-import { stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
+import { lessonLine, stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
 import { SPIN_WORD } from "./spinWords";
 import { TableView } from "./TableView";
 
@@ -41,6 +41,7 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
           highlight={teachingBall}
         />
       </View>
+      <Text style={styles.lesson}>{lessonLine(setup.lesson)}</Text>
       <Text style={styles.headline}>{verdictHeadline(result)}</Text>
       <ScrollView style={styles.steps}>
         {result.steps.map((stepResult, i) => {
@@ -92,9 +93,12 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
 const styles = StyleSheet.create({
   panel: { flex: 1, padding: 16, backgroundColor: "#12241a" },
   table: { flex: 5, minHeight: 160 },
+  lesson: {
+    color: "#b9cbbf", fontSize: 14, fontStyle: "italic", marginTop: 8,
+  },
   headline: {
     color: "#f7f4ec", fontSize: 20, fontWeight: "700",
-    marginTop: 8, marginBottom: 12,
+    marginTop: 4, marginBottom: 12,
   },
   steps: { flex: 4 },
   step: { paddingVertical: 6 },

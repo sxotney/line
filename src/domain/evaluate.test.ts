@@ -9,6 +9,7 @@ const BAND_VALUE: Record<Strength, number> = { soft: 20, medium: 50, firm: 85 };
 const setup: Setup = {
   id: "s1",
   ladderIndex: 0,
+  lesson: "positional-play",
   balls: [
     { id: "r1", kind: "red", x: 100, y: 100 },
     { id: "r2", kind: "red", x: 200, y: 200 },

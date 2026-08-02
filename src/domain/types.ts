@@ -43,9 +43,22 @@ export interface Step {
   why?: string;
 }
 
+// The one thing a Setup teaches. Drives ladder curation; surfaces to Alex
+// only as a warm coaching line at the top of the Reveal — never a badge,
+// filter, or picker (ADR 0004).
+export const LESSONS = [
+  "positional-play",
+  "cluster",
+  "cushion-work",
+  "awkward-ball-first",
+  "colour-choice",
+] as const;
+export type Lesson = (typeof LESSONS)[number];
+
 export interface Setup {
   id: string;
   ladderIndex: number;
+  lesson: Lesson;
   title?: string;
   balls: Ball[];
   coachedLine: Step[];

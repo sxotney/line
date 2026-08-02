@@ -5,6 +5,7 @@ import type { Setup } from "../domain/types";
 const setup: Setup = {
   id: "s1",
   ladderIndex: 0,
+  lesson: "positional-play",
   balls: [
     { id: "a", kind: "red", x: 1, y: 1 },
     { id: "black", kind: "colour", colour: "black", x: 2, y: 2 },

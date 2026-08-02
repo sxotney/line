@@ -4,6 +4,7 @@ import { parseSetup, parseSetups } from "./schema";
 const valid = {
   id: "s1",
   ladderIndex: 0,
+  lesson: "positional-play",
   balls: [
     { id: "r1", kind: "red", x: 100, y: 100 },
     { id: "r2", kind: "red", x: 200, y: 200 },
@@ -18,6 +19,24 @@ const valid = {
 describe("parseSetup", () => {
   it("accepts a well-formed setup", () => {
     expect(parseSetup(valid).id).toBe("s1");
+  });
+
+  it("accepts every Lesson in the fixed set", () => {
+    for (const lesson of [
+      "positional-play", "cluster", "cushion-work",
+      "awkward-ball-first", "colour-choice",
+    ]) {
+      expect(parseSetup({ ...valid, lesson }).lesson).toBe(lesson);
+    }
+  });
+
+  it("rejects a lesson outside the fixed set", () => {
+    expect(() => parseSetup({ ...valid, lesson: "trick-shots" })).toThrow();
+  });
+
+  it("rejects a setup with no lesson", () => {
+    const { lesson: _lesson, ...noLesson } = valid;
+    expect(() => parseSetup(noLesson)).toThrow();
   });
 
   it("rejects duplicate ball ids", () => {

@@ -7,6 +7,7 @@ import {
 } from "../domain/planning";
 import type { BallId, Shot, Spin } from "../domain/types";
 import { nextIndex } from "../domain/ladder";
+import { simulateLine } from "../domain/leave";
 import { loadLadderIndex, saveLadderIndex } from "../state/ladderStorage";
 import { ballNamer } from "../ui/ballNames";
 import { Reveal } from "../ui/Reveal";
@@ -77,11 +78,18 @@ export function PlayScreen() {
     }
   };
 
+  // The Simulated table: the white sits at its latest Leave. Derived from
+  // the committed line only — a pending pick hasn't moved anything yet.
+  const simulated = simulateLine(setup, line);
+  const tableBalls = setup.balls.map((ball) =>
+    ball.kind === "cue" ? { ...ball, ...simulated.cue } : ball,
+  );
+
   return (
     <View style={styles.screen}>
       <View style={styles.table}>
         <TableView
-          balls={setup.balls}
+          balls={tableBalls}
           sequence={line.map((shot) => shot.ball)}
           tappable={pendingBall === null ? tappableBalls(setup, line) : []}
           onTapBall={onTapBall}

@@ -68,7 +68,7 @@ const raw = [
       { ball: "r1", why: "Pot the loose reds first. The cluster is not going anywhere." },
       { ball: "blue", why: "Blue keeps you in the middle of the table with a view of everything." },
       { ball: "r2" },
-      { ball: "pink", acceptable: ["black"], why: "Pink puts you on the right side to split the two reds that are touching." },
+      { ball: "pink", acceptable: ["black"], why: "Pink puts you on the right side to split the two reds that are close together." },
       { ball: "r3", why: "Now you are on the cluster with a colour to follow." },
       { ball: "black" },
       { ball: "r4" },

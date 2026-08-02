@@ -29,25 +29,36 @@ describe("verdictHeadline", () => {
     const headlines = [make(["matched"]), make(["alternative"]), make(["divergence"])]
       .map(verdictHeadline);
     const steps = [
-      stepLine(1, "red 1", "matched"),
-      stepLine(2, "blue", "alternative"),
-      stepLine(3, "black", "divergence"),
+      stepLine(1, "red 1", "red 1", "matched"),
+      stepLine(2, "blue", "pink", "alternative"),
+      stepLine(3, "red 2", "black", "divergence"),
+      stepLine(4, "black", null, "divergence"),
     ];
     const all = [...headlines, ...steps].join(" ");
-    expect(all).not.toMatch(/score|%|streak|wrong|incorrect|fail/i);
+    expect(all).not.toMatch(/score|%|streak|wrong|incorrect|fail|mistake|error/i);
   });
 });
 
 describe("stepLine", () => {
-  it("renders a matched step with just the position and ball name", () => {
-    expect(stepLine(1, "red 1", "matched")).toBe("1. red 1");
+  it("renders a matched step with just the position and coached ball name", () => {
+    expect(stepLine(1, "red 1", "red 1", "matched")).toBe("1. red 1");
   });
 
-  it("renders an alternative step as also fine", () => {
-    expect(stepLine(2, "blue", "alternative")).toBe("2. blue — also fine");
+  it("renders an alternative step leading with Alex's own choice, coached ball kept as reference", () => {
+    expect(stepLine(2, "blue", "pink", "alternative")).toBe(
+      "2. pink — also fine (coached: blue)",
+    );
   });
 
-  it("renders a divergence step as take this one instead", () => {
-    expect(stepLine(3, "black", "divergence")).toBe("3. black — take this one instead");
+  it("renders a divergence step naming the coached ball as the subject and acknowledging Alex's choice", () => {
+    expect(stepLine(3, "red 2", "black", "divergence")).toBe(
+      "3. red 2 — take this one instead (you went for black)",
+    );
+  });
+
+  it("renders a divergence step with no chosen ball sensibly, without inventing a name", () => {
+    expect(stepLine(4, "black", null, "divergence")).toBe(
+      "4. black — take this one instead",
+    );
   });
 });

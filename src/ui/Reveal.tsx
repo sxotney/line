@@ -8,7 +8,10 @@ export interface RevealProps {
   setup: Setup;
   result: Result;
   onTryAgain: () => void;
-  onNext: () => void;
+  // Omitted when this is the last setup in the ladder — Reveal then shows
+  // only "Try again", which signals the ladder's end without a banned
+  // "session complete" surface (ADR 0004).
+  onNext?: () => void;
 }
 
 export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
@@ -43,13 +46,14 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
         {result.steps.map((stepResult, i) => {
           const step = setup.coachedLine[i];
           const isTeachingMoment = result.firstDivergence === i;
+          const chosenName = stepResult.chosen ? nameOf(stepResult.chosen) : null;
           return (
             <View
               key={i}
               style={[styles.step, isTeachingMoment && styles.teachingMoment]}
             >
               <Text style={styles.stepText}>
-                {stepLine(i + 1, nameOf(step.ball), stepResult.verdict)}
+                {stepLine(i + 1, nameOf(step.ball), chosenName, stepResult.verdict)}
               </Text>
               {step.why && <Text style={styles.why}>{step.why}</Text>}
             </View>
@@ -60,9 +64,11 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
         <Pressable style={styles.button} onPress={onTryAgain}>
           <Text style={styles.buttonText}>Try again</Text>
         </Pressable>
-        <Pressable style={styles.button} onPress={onNext}>
-          <Text style={styles.buttonText}>Next</Text>
-        </Pressable>
+        {onNext && (
+          <Pressable style={styles.button} onPress={onNext}>
+            <Text style={styles.buttonText}>Next</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );

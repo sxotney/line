@@ -44,12 +44,13 @@ export function PlayScreen() {
   };
 
   if (result) {
+    const isLastSetup = index >= SETUPS.length - 1;
     return (
       <Reveal
         setup={setup}
         result={result}
         onTryAgain={() => { setLine([]); setResult(null); }}
-        onNext={() => restart(nextIndex(index, SETUPS.length))}
+        onNext={isLastSetup ? undefined : () => restart(nextIndex(index, SETUPS.length))}
       />
     );
   }

@@ -30,7 +30,14 @@ export function TableView({
       ))}
 
       {balls.map((ball) => {
-        const order = sequence.indexOf(ball.id);
+        // A re-spotted colour can appear more than once in the sequence
+        // (e.g. black taken at positions 2, 4, 6) — show every position it
+        // was tapped at, not just the first, so Alex can review his full
+        // committed plan before pressing Done.
+        const positions = sequence.reduce<number[]>((acc, id, i) => {
+          if (id === ball.id) acc.push(i + 1);
+          return acc;
+        }, []);
         const isTappable = tappable.includes(ball.id);
         const fill = ball.kind === "colour"
           ? (ball.colour ? BALL_FILL[ball.colour] : MISSING_COLOUR_FILL)
@@ -43,19 +50,21 @@ export function TableView({
               stroke={highlight === ball.id ? "#ffffff" : isTappable ? "#ffffff" : "none"}
               strokeWidth={highlight === ball.id ? 10 : isTappable ? 4 : 0}
               opacity={
-                isTappable || order !== -1 || ball.kind === "cue" || highlight === ball.id
+                isTappable || positions.length > 0 || ball.kind === "cue" || highlight === ball.id
                   ? 1
                   : 0.55
               }
               onPress={() => onTapBall(ball.id)}
             />
-            {order !== -1 && (
+            {positions.length > 0 && (
               <SvgText
                 x={ball.x} y={ball.y + BALL_RADIUS * 0.35}
-                fontSize={BALL_RADIUS * 1.1} fontWeight="bold"
+                fontSize={BALL_RADIUS * (positions.length > 1 ? 0.75 : 1.1)}
+                fontWeight="bold"
                 fill="#ffffff" textAnchor="middle"
+                pointerEvents="none"
               >
-                {order + 1}
+                {positions.join("·")}
               </SvgText>
             )}
           </React.Fragment>

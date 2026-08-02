@@ -75,9 +75,9 @@ he commits his own.
   Reveal ("This one was about breaking up the cluster."). Phrased as teaching, never as
   a category badge — no filters, no pickers, no browsing by Lesson (ADR 0004 holds).
 - Internally the Lesson drives Ladder curation: interleave Lessons, easy→hard overall.
-- **Starting pack**: ten Setups, two per Lesson. The original three are retagged
-  (open-three → colour-choice, awkward-first → awkward-ball-first, hold-the-pack →
-  cluster); seven are newly authored. Cushion-work Setups teach cannons off the cushion
+- **Starting pack**: ten Setups, two per Lesson. The original three now declare their
+  Lessons (open-three → colour-choice, awkward-first → awkward-ball-first, hold-the-pack
+  → cluster); seven are newly authored. Cushion-work Setups teach cannons off the cushion
   through the coached Strength/Spin and the why-text — the pot-only mechanic is
   unchanged; the cannon lives in the coaching prose and where the Leave puts the white.
 - Coaching prose remains placeholder-quality snooker, to be refined with Carl/Brian.

@@ -65,6 +65,10 @@ he commits his own.
 - The Leave is **display only** (ADR 0005): it reflects Alex's plan identically whatever
   he picks, is never compared to the Coached line during Planning, and `evaluate()` and
   the Reveal are unchanged by it.
+- The white **travels its actual route** to each Leave (2026-08-02, revised from a
+  straight slide): up to the contact point, off along the tangent/follow/screw line,
+  bending at any cushion kiss. No path lines are drawn — the motion is the path. Undo
+  and Try again reposition instantly rather than replaying a shot backwards.
 
 ### Added in M4 (2026-08-02) — Lessons and the starting pack
 

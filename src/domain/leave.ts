@@ -10,16 +10,19 @@ export function strengthBand(value: number): Strength {
   return "firm";
 }
 
-interface Point {
+export interface Point {
   x: number;
   y: number;
 }
 
-// The Simulated table: where the white sits and which reds are down after
-// replaying Alex's shots so far. Display only — never judged (ADR 0005).
+// The Simulated table: where the white sits, which reds are down, and the
+// route the white took on the LATEST shot (start → contact → cushion kiss
+// if any → rest) so the UI can animate the real path. Display only —
+// never judged (ADR 0005).
 export interface SimulatedTable {
   cue: Point;
   pottedReds: BallId[];
+  path: Point[];
 }
 
 // Kid-plausible tuning knobs, expected to be adjusted after watching Alex
@@ -65,26 +68,57 @@ function naturalPocket(cue: Point, object: Point): Point {
 
 // One cushion reflection per axis at most, then a clamp backstop — enough
 // for a kid-plausible overhit, deliberately not multi-cushion physics.
-function reflectIntoTable(p: Point): Point {
+// Walks the run segment by segment so every cushion kiss becomes a
+// waypoint; the final rest is identical to mirroring the endpoint.
+function runWithCushions(start: Point, dir: Point, travel: number): Point[] {
   const min = BALL_RADIUS;
   const maxX = TABLE.width - BALL_RADIUS;
   const maxY = TABLE.height - BALL_RADIUS;
-  let { x, y } = p;
-  if (x < min) x = 2 * min - x;
-  else if (x > maxX) x = 2 * maxX - x;
-  if (y < min) y = 2 * min - y;
-  else if (y > maxY) y = 2 * maxY - y;
-  return {
-    x: Math.min(Math.max(x, min), maxX),
-    y: Math.min(Math.max(y, min), maxY),
-  };
+
+  const waypoints: Point[] = [];
+  let p = start;
+  let d = dir;
+  let remaining = travel;
+  let xBounce = true;
+  let yBounce = true;
+
+  while (remaining > 1e-9 && (xBounce || yBounce)) {
+    const toX = d.x > 0 ? (maxX - p.x) / d.x : d.x < 0 ? (min - p.x) / d.x : Infinity;
+    const toY = d.y > 0 ? (maxY - p.y) / d.y : d.y < 0 ? (min - p.y) / d.y : Infinity;
+    const tX = xBounce && toX > 1e-9 ? toX : Infinity;
+    const tY = yBounce && toY > 1e-9 ? toY : Infinity;
+    const t = Math.min(tX, tY);
+    if (t >= remaining) break;
+
+    p = add(p, scale(d, t));
+    if (Math.abs(tX - t) < 1e-9) {
+      p = { ...p, x: d.x > 0 ? maxX : min };
+      d = { x: -d.x, y: d.y };
+      xBounce = false;
+    }
+    if (Math.abs(tY - t) < 1e-9) {
+      p = { ...p, y: d.y > 0 ? maxY : min };
+      d = { x: d.x, y: -d.y };
+      yBounce = false;
+    }
+    waypoints.push(p);
+    remaining -= t;
+  }
+
+  const rest = add(p, scale(d, remaining));
+  waypoints.push({
+    x: Math.min(Math.max(rest.x, min), maxX),
+    y: Math.min(Math.max(rest.y, min), maxY),
+  });
+  return waypoints;
 }
 
-// Where one shot leaves the white. The pot succeeds into the natural
-// pocket; the white arrives at the ghost-ball contact point and departs
-// along the tangent line, bent toward the pot line by top and away by low,
-// running a distance set by the raw strength value.
-function predictLeave(cue: Point, object: Point, shot: Shot): Point {
+// Where one shot leaves the white, as the waypoints it travels (excluding
+// its starting point): contact, any cushion kiss, rest. The pot succeeds
+// into the natural pocket; the white arrives at the ghost-ball contact
+// point and departs along the tangent line, bent toward the pot line by
+// top and away by low, running a distance set by the raw strength value.
+function predictLeave(cue: Point, object: Point, shot: Shot): Point[] {
   const pocket = naturalPocket(cue, object);
   const potDir = normalize(sub(pocket, object));
   const contact = add(object, scale(potDir, -BALL_RADIUS * 2));
@@ -111,12 +145,12 @@ function predictLeave(cue: Point, object: Point, shot: Shot): Point {
   // treat anything below this as "the white stops where it strikes" rather
   // than normalizing noise into a full-speed departure.
   if (length(departure) < 1e-6) {
-    return contact;
+    return [contact];
   }
   const direction = normalize(departure);
 
   const travel = (shot.strength / 100) * MAX_TRAVEL;
-  return reflectIntoTable(add(contact, scale(direction, travel)));
+  return [contact, ...runWithCushions(contact, direction, travel)];
 }
 
 // Replay Alex's shots from the Setup's starting position. Every chosen
@@ -128,13 +162,16 @@ export function simulateLine(setup: Setup, shots: Shot[]): SimulatedTable {
 
   let cue: Point = start ? { x: start.x, y: start.y } : { x: 0, y: 0 };
   const pottedReds: BallId[] = [];
+  let path: Point[] = [];
 
   for (const shot of shots) {
     const object = byId.get(shot.ball);
     if (!object || object.kind === "cue") continue;
-    cue = predictLeave(cue, { x: object.x, y: object.y }, shot);
+    const waypoints = predictLeave(cue, { x: object.x, y: object.y }, shot);
+    path = [cue, ...waypoints];
+    cue = waypoints[waypoints.length - 1]!;
     if (object.kind === "red") pottedReds.push(object.id);
   }
 
-  return { cue, pottedReds };
+  return { cue, pottedReds, path };
 }

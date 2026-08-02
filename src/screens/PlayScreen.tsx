@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SETUPS } from "../content/setups";
 import { evaluate, type Result } from "../domain/evaluate";
@@ -85,6 +85,13 @@ export function PlayScreen() {
     ball.kind === "cue" ? { ...ball, ...simulated.cue } : ball,
   );
 
+  // Animate the white along its route only when a shot was just committed.
+  // Undo and Try again shrink the line — the white repositions instantly
+  // rather than replaying an old shot backwards.
+  const previousLineLength = useRef(line.length);
+  const lineGrew = line.length > previousLineLength.current;
+  previousLineLength.current = line.length;
+
   return (
     <View style={styles.screen}>
       <View style={styles.table}>
@@ -98,6 +105,7 @@ export function PlayScreen() {
           onTapBall={onTapBall}
           highlight={pendingBall}
           potted={simulated.pottedReds}
+          cuePath={lineGrew ? simulated.path : null}
         />
       </View>
       {pendingBall !== null ? (

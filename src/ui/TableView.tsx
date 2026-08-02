@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing } from "react-native";
 import Svg, { Circle, Rect, Text as SvgText } from "react-native-svg";
+import type { Point } from "../domain/leave";
 import type { Ball, BallId } from "../domain/types";
 import { TABLE } from "../domain/types";
 import { BALL_RADIUS, CUSHION, POCKET_RADIUS, pocketCentres, viewBox } from "./geometry";
@@ -16,27 +17,47 @@ export interface TableViewProps {
   // Planning). Ghosted, badge still readable. Colours never appear here —
   // they re-spot.
   potted?: BallId[];
+  // The white's route for its latest move — animated when present, an
+  // instant reposition when null (undo, Try again, a fresh Setup).
+  cuePath?: Point[] | null;
 }
 
 const GHOST_OPACITY = 0.25;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-// The white slides to each new Leave rather than teleporting — following
-// the move is half the teaching. Everything else on the table stays still,
-// so only the cue ball pays for an animated wrapper.
-function SlidingCueBall({ x, y, fill }: { x: number; y: number; fill: string }) {
+// The white travels its actual route to each new Leave — up to the contact
+// point, off along the tangent/follow/screw line, off the cushion if hit —
+// because following the move is half the teaching. With no path (undo, Try
+// again, reload) it repositions instantly. Everything else on the table
+// stays still, so only the cue ball pays for an animated wrapper.
+function SlidingCueBall({
+  x, y, fill, path,
+}: { x: number; y: number; fill: string; path: Point[] | null }) {
   const position = useRef(new Animated.ValueXY({ x, y })).current;
 
   useEffect(() => {
-    Animated.timing(position, {
-      toValue: { x, y },
-      duration: 450,
-      easing: Easing.out(Easing.cubic),
-      // SVG attributes can't ride the native driver.
-      useNativeDriver: false,
-    }).start();
-  }, [position, x, y]);
+    if (!path || path.length < 2) {
+      position.setValue({ x, y });
+      return;
+    }
+    position.setValue({ x: path[0]!.x, y: path[0]!.y });
+    const segments = path.slice(1).map((point, i) => {
+      const from = path[i]!;
+      const distance = Math.hypot(point.x - from.x, point.y - from.y);
+      return Animated.timing(position, {
+        toValue: { x: point.x, y: point.y },
+        // Pace by distance so a long run reads slower than a nudge.
+        duration: Math.max(120, (distance / 2000) * 700),
+        easing: Easing.linear,
+        // SVG attributes can't ride the native driver.
+        useNativeDriver: false,
+      });
+    });
+    const run = Animated.sequence(segments);
+    run.start();
+    return () => run.stop();
+  }, [position, x, y, path]);
 
   return (
     <AnimatedCircle cx={position.x} cy={position.y} r={BALL_RADIUS} fill={fill} />
@@ -44,7 +65,7 @@ function SlidingCueBall({ x, y, fill }: { x: number; y: number; fill: string }) 
 }
 
 export function TableView({
-  balls, sequence, tappable, onTapBall, highlight, potted = [],
+  balls, sequence, tappable, onTapBall, highlight, potted = [], cuePath = null,
 }: TableViewProps) {
   return (
     <Svg viewBox={viewBox()} width="100%" height="100%">
@@ -75,7 +96,9 @@ export function TableView({
           : BALL_FILL[ball.kind];
         if (ball.kind === "cue") {
           return (
-            <SlidingCueBall key={ball.id} x={ball.x} y={ball.y} fill={fill} />
+            <SlidingCueBall
+              key={ball.id} x={ball.x} y={ball.y} fill={fill} path={cuePath}
+            />
           );
         }
         return (

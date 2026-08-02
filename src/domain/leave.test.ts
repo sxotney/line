@@ -141,6 +141,56 @@ describe("simulateLine — the single-shot heuristic", () => {
   });
 });
 
+describe("simulateLine — the path", () => {
+  it("has no path before any shot", () => {
+    expect(simulateLine(straightSetup, []).path).toEqual([]);
+  });
+
+  it("runs from where the white stood to where it rests", () => {
+    const state = simulateLine(straightSetup, [shot("r1", 20, "top")]);
+    expect(state.path[0]).toEqual(CUE);
+    expect(state.path[state.path.length - 1]).toEqual(state.cue);
+    expect(state.path.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("passes through the contact point on the way", () => {
+    const state = simulateLine(straightSetup, [shot("r1", 20, "top")]);
+    // Ghost-ball contact: two ball radii short of the object ball, on the
+    // line of the pot (spec definition, independent of the implementation).
+    const contact = state.path[1]!;
+    expect(distance(contact, RED)).toBeCloseTo(BALL_RADIUS * 2, 0);
+  });
+
+  it("is just start-to-contact for a dead-straight stun", () => {
+    const state = simulateLine(straightSetup, [shot("r1", 50, "centre")]);
+    expect(state.path).toHaveLength(2);
+    expect(state.path[1]).toEqual(state.cue);
+  });
+
+  it("bends at the cushion on an overhit instead of cutting the corner", () => {
+    const state = simulateLine(straightSetup, [shot("r1", 100, "low")]);
+    // Between contact and rest there is a waypoint ON a cushion line.
+    const onCushion = state.path.slice(2, -1).some(
+      (p) =>
+        p.x === BALL_RADIUS ||
+        p.x === TABLE.width - BALL_RADIUS ||
+        p.y === BALL_RADIUS ||
+        p.y === TABLE.height - BALL_RADIUS,
+    );
+    expect(onCushion).toBe(true);
+  });
+
+  it("is the latest shot's path after a fold", () => {
+    const afterOne = simulateLine(straightSetup, [shot("r1", 50, "centre")]);
+    const afterTwo = simulateLine(straightSetup, [
+      shot("r1", 50, "centre"),
+      shot("black", 30, "top"),
+    ]);
+    expect(afterTwo.path[0]).toEqual(afterOne.cue);
+    expect(afterTwo.path[afterTwo.path.length - 1]).toEqual(afterTwo.cue);
+  });
+});
+
 describe("simulateLine — the fold", () => {
   it("accumulates potted reds and never pots a colour off the table", () => {
     const line = [shot("r1", 50, "centre"), shot("black", 50, "centre")];

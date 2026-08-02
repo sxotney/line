@@ -29,7 +29,3 @@ export const POCKET_CENTRES: Record<Pocket, { x: number; y: number }> = {
   "bottom-middle": { x: TABLE.width / 2, y: TABLE.height },
   "bottom-right": { x: TABLE.width, y: TABLE.height },
 };
-
-export function pocketCentres(): { x: number; y: number }[] {
-  return Object.values(POCKET_CENTRES);
-}

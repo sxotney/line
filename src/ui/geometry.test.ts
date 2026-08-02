@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BALL_RADIUS, CUSHION, pocketCentres, SPOTS, viewBox } from "./geometry";
+import { BALL_RADIUS, CUSHION, POCKET_CENTRES, SPOTS, viewBox } from "./geometry";
 
 describe("geometry", () => {
   it("frames the play area plus a cushion on every side", () => {
@@ -11,11 +11,12 @@ describe("geometry", () => {
   });
 
   it("places six pockets: four corners and two middles", () => {
-    const centres = pocketCentres();
+    const centres = Object.values(POCKET_CENTRES);
     expect(centres).toHaveLength(6);
     expect(centres).toContainEqual({ x: 0, y: 0 });
     expect(centres).toContainEqual({ x: 3569, y: 1778 });
     expect(centres.filter((p) => p.x === 3569 / 2)).toHaveLength(2);
+    expect(POCKET_CENTRES["top-right"]).toEqual({ x: 3569, y: 0 });
   });
 
   it("places the six colour spots inside the play area", () => {

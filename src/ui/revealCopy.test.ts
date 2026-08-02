@@ -49,6 +49,10 @@ describe("verdictHeadline", () => {
       stepLine(4, shot("red 2"), shot("black"), "divergence", "divergence"),
       stepLine(5, shot("red 2"), shot("red 2", "firm", "top"), "divergence", "matched"),
       stepLine(6, shot("black"), null, "divergence", "divergence"),
+      stepLine(7, shot("red 1", "medium", "top", "top right"),
+        shot("red 1", "medium", "top", "bottom middle"), "divergence", "matched"),
+      stepLine(8, shot("blue", "soft", "centre", "top middle"),
+        shot("blue", "soft", "centre", "top left"), "alternative", "matched"),
     ];
     const all = [...headlines, ...steps, ...LESSONS.map(lessonLine)].join(" ");
     expect(all).not.toMatch(/score|%|streak|wrong|incorrect|fail|mistake|error/i);

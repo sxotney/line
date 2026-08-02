@@ -92,8 +92,8 @@ he commits his own.
   carries one. On tapping a ball the **Suggested pocket** (straightest cut from the
   white, ties by distance — the old natural-pocket heuristic, now exported) lights up
   with a ring; while the ShotPicker is open Alex can tap a different pocket on the
-  table. Commit is still strength + spin — the pocket adds no step when the default is
-  right.
+  table. Commit is still strength + spin — the pocket adds no step when the Suggested
+  pocket is right.
 - The Leave pots along **the Shot's pocket**, not a guess — fixing the wrong-Leave
   problem the heuristic had on cut shots.
 - Steps may author `pocket` + `acceptablePocket`. Authored → judged as a fourth axis

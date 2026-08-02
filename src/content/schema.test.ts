@@ -50,6 +50,17 @@ describe("parseSetup", () => {
     expect(parseSetup(withPocket).coachedLine[0].pocket).toBe("top-right");
   });
 
+  it("rejects acceptable pockets on a step with no coached pocket", () => {
+    const orphaned = {
+      ...valid,
+      coachedLine: [
+        { ...valid.coachedLine[0], acceptablePocket: ["top-middle"] },
+        ...valid.coachedLine.slice(1),
+      ],
+    };
+    expect(() => parseSetup(orphaned)).toThrow(/coached pocket/i);
+  });
+
   it("rejects a pocket outside the fixed six, in either field", () => {
     const badPocket = {
       ...valid,

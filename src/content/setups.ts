@@ -156,7 +156,7 @@ const raw = [
     coachedLine: [
       { ball: "r1", strength: "soft", spin: "low", pocket: "top-right", why: "Come into this red on its left side — soft screw holds the white above the black, not below it." },
       { ball: "black", strength: "soft", spin: "centre" },
-      { ball: "r2", strength: "medium", spin: "top", pocket: "bottom-right", why: "Roll through on the correct side so the pink is next, not a long blue." },
+      { ball: "r2", strength: "medium", spin: "top", pocket: "bottom-middle", why: "Roll through on the correct side so the pink is next, not a long blue." },
       { ball: "pink", acceptable: ["black"], strength: "soft", spin: "centre" },
       { ball: "r3", strength: "medium", spin: "centre" },
       { ball: "black", strength: "soft", spin: "centre" },

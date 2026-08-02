@@ -15,17 +15,22 @@ const ballSchema = z
     message: "a colour ball must declare its colour",
   });
 
-const stepSchema = z.object({
-  ball: z.string().min(1),
-  acceptable: z.array(z.string().min(1)).optional(),
-  strength: z.enum(STRENGTHS),
-  acceptableStrength: z.array(z.enum(STRENGTHS)).optional(),
-  spin: z.enum(SPINS),
-  acceptableSpin: z.array(z.enum(SPINS)).optional(),
-  pocket: z.enum(POCKETS).optional(),
-  acceptablePocket: z.array(z.enum(POCKETS)).optional(),
-  why: z.string().optional(),
-});
+const stepSchema = z
+  .object({
+    ball: z.string().min(1),
+    acceptable: z.array(z.string().min(1)).optional(),
+    strength: z.enum(STRENGTHS),
+    acceptableStrength: z.array(z.enum(STRENGTHS)).optional(),
+    spin: z.enum(SPINS),
+    acceptableSpin: z.array(z.enum(SPINS)).optional(),
+    pocket: z.enum(POCKETS).optional(),
+    acceptablePocket: z.array(z.enum(POCKETS)).optional(),
+    why: z.string().optional(),
+  })
+  .refine((s) => s.acceptablePocket === undefined || s.pocket !== undefined, {
+    message:
+      "acceptablePocket without a coached pocket is silently unjudged — author the pocket too",
+  });
 
 export const setupSchema = z
   .object({

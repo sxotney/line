@@ -43,6 +43,7 @@ function coachedShot(
     ball: step.ball,
     strength: BAND_VALUE[step.strength],
     spin: step.spin,
+    pocket: step.pocket ?? "top-right",
     ...override,
   };
 }
@@ -128,6 +129,37 @@ describe("evaluate", () => {
     expect(result.firstDivergence).toBe(2);
   });
 
+  it("never judges the pocket on a step that authors none", () => {
+    // No step in this fixture authors a pocket — any pocket is fine.
+    const line = coachedFull();
+    line[0] = coachedShot(0, { pocket: "bottom-left" });
+    const result = evaluate(setup, line);
+    expect(result.steps[0].pocketVerdict).toBe("matched");
+    expect(result.steps[0].verdict).toBe("matched");
+  });
+
+  it("judges an authored pocket as its own axis", () => {
+    const pocketSetup: Setup = {
+      ...setup,
+      coachedLine: setup.coachedLine.map((step, i) =>
+        i === 0
+          ? { ...step, pocket: "top-right" as const, acceptablePocket: ["top-middle" as const] }
+          : step,
+      ),
+    };
+    const judge = (pocket: Shot["pocket"]) => {
+      const line = coachedFull();
+      line[0] = coachedShot(0, { pocket });
+      return evaluate(pocketSetup, line).steps[0];
+    };
+    expect(judge("top-right").pocketVerdict).toBe("matched");
+    expect(judge("top-middle").pocketVerdict).toBe("alternative");
+    expect(judge("top-middle").verdict).toBe("alternative");
+    expect(judge("bottom-left").pocketVerdict).toBe("divergence");
+    expect(judge("bottom-left").verdict).toBe("divergence");
+    expect(judge("bottom-left").ballVerdict).toBe("matched");
+  });
+
   it("records the first divergence and keeps evaluating later steps", () => {
     const line = coachedFull();
     line[0] = coachedShot(0, { ball: "r2" });
@@ -163,6 +195,7 @@ describe("evaluate", () => {
     };
     const line: Shot[] = respot.coachedLine.map((s) => ({
       ball: s.ball, strength: BAND_VALUE[s.strength], spin: s.spin,
+      pocket: "top-right" as const,
     }));
     const result = evaluate(respot, line);
     expect(result.steps.map((s) => s.verdict)).toEqual([

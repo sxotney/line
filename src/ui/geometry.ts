@@ -1,4 +1,4 @@
-import { TABLE, type Colour } from "../domain/types";
+import { TABLE, type Colour, type Pocket } from "../domain/types";
 
 export const BALL_RADIUS = 30;
 export const CUSHION = 100;
@@ -21,13 +21,15 @@ export function viewBox(): string {
   return `${-CUSHION} ${-CUSHION} ${TABLE.width + CUSHION * 2} ${TABLE.height + CUSHION * 2}`;
 }
 
+export const POCKET_CENTRES: Record<Pocket, { x: number; y: number }> = {
+  "top-left": { x: 0, y: 0 },
+  "top-middle": { x: TABLE.width / 2, y: 0 },
+  "top-right": { x: TABLE.width, y: 0 },
+  "bottom-left": { x: 0, y: TABLE.height },
+  "bottom-middle": { x: TABLE.width / 2, y: TABLE.height },
+  "bottom-right": { x: TABLE.width, y: TABLE.height },
+};
+
 export function pocketCentres(): { x: number; y: number }[] {
-  return [
-    { x: 0, y: 0 },
-    { x: TABLE.width / 2, y: 0 },
-    { x: TABLE.width, y: 0 },
-    { x: 0, y: TABLE.height },
-    { x: TABLE.width / 2, y: TABLE.height },
-    { x: TABLE.width, y: TABLE.height },
-  ];
+  return Object.values(POCKET_CENTRES);
 }

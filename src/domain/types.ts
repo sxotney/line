@@ -24,13 +24,26 @@ export type Strength = (typeof STRENGTHS)[number];
 export const SPINS = ["low", "centre", "top"] as const;
 export type Spin = (typeof SPINS)[number];
 
+// The six pockets, named by table position (landscape, baulk at the left).
+export const POCKETS = [
+  "top-left",
+  "top-middle",
+  "top-right",
+  "bottom-left",
+  "bottom-middle",
+  "bottom-right",
+] as const;
+export type Pocket = (typeof POCKETS)[number];
+
 // One entry in Alex's line: the ball he taps plus how he'd play the shot.
 // Strength is the raw slider value (0–100); it is judged by the band it
-// falls in but drives the Leave continuously.
+// falls in but drives the Leave continuously. The pocket is prefilled with
+// the Suggested pocket, so it only differs when Alex meant it to.
 export interface Shot {
   ball: BallId;
   strength: number;
   spin: Spin;
+  pocket: Pocket;
 }
 
 export interface Step {
@@ -40,6 +53,10 @@ export interface Step {
   acceptableStrength?: Strength[];
   spin: Spin;
   acceptableSpin?: Spin[];
+  // Authored only where the pot direction is the lesson: judged as a
+  // fourth axis when present, display-only when absent.
+  pocket?: Pocket;
+  acceptablePocket?: Pocket[];
   why?: string;
 }
 

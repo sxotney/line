@@ -9,8 +9,11 @@ export interface StepResult {
   ballVerdict: StepVerdict;
   strengthVerdict: StepVerdict;
   spinVerdict: StepVerdict;
-  // Worst of the three axes: any divergence → divergence, else any
-  // alternative → alternative, else matched. A missing shot is a divergence.
+  // Judged only when the Step authors a pocket; otherwise always matched —
+  // an unauthored pocket is display-only (ADR 0005).
+  pocketVerdict: StepVerdict;
+  // Worst of the axes: any divergence → divergence, else any alternative →
+  // alternative, else matched. A missing shot is a divergence.
   verdict: StepVerdict;
 }
 
@@ -44,6 +47,7 @@ function judgeShot(step: Step, index: number, chosen: Shot | null): StepResult {
       ballVerdict: "divergence",
       strengthVerdict: "divergence",
       spinVerdict: "divergence",
+      pocketVerdict: "divergence",
       verdict: "divergence",
     };
   }
@@ -55,13 +59,17 @@ function judgeShot(step: Step, index: number, chosen: Shot | null): StepResult {
     strengthBand(chosen.strength), step.strength, step.acceptableStrength,
   );
   const spinVerdict = judgeAxis<Spin>(chosen.spin, step.spin, step.acceptableSpin);
+  const pocketVerdict = step.pocket
+    ? judgeAxis(chosen.pocket, step.pocket, step.acceptablePocket)
+    : "matched";
   return {
     step: index,
     chosen,
     ballVerdict,
     strengthVerdict,
     spinVerdict,
-    verdict: combined(ballVerdict, strengthVerdict, spinVerdict),
+    pocketVerdict,
+    verdict: combined(ballVerdict, strengthVerdict, spinVerdict, pocketVerdict),
   };
 }
 

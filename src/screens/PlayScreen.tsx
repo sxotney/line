@@ -7,7 +7,7 @@ import {
 } from "../domain/planning";
 import type { BallId, Shot, Spin } from "../domain/types";
 import { nextIndex } from "../domain/ladder";
-import { simulateLine } from "../domain/leave";
+import { simulateLine, suggestedPocket } from "../domain/leave";
 import { loadLadderIndex, saveLadderIndex } from "../state/ladderStorage";
 import { ballNamer } from "../ui/ballNames";
 import { Reveal } from "../ui/Reveal";
@@ -65,7 +65,16 @@ export function PlayScreen() {
 
   const commitShot = (strength: number, spin: Spin) => {
     if (pendingBall === null) return;
-    const shot: Shot = { ball: pendingBall, strength, spin };
+    const object = setup.balls.find((b) => b.id === pendingBall);
+    if (!object) return;
+    const shot: Shot = {
+      ball: pendingBall,
+      strength,
+      spin,
+      // The Suggested pocket, until the pocket-tap UI (M5.2) lets Alex
+      // override it. Computed from where the simulated white sits now.
+      pocket: suggestedPocket(simulateLine(setup, line).cue, object),
+    };
     setLine((current) => appendShot(setup, current, shot));
     setPendingBall(null);
   };

@@ -23,8 +23,10 @@ const setup: Setup = {
   ],
 };
 
-// Strength/spin never affect legality — any values will do in these tests.
-const shot = (ball: BallId): Shot => ({ ball, strength: 50, spin: "centre" });
+// Strength/spin/pocket never affect legality — any values do in these tests.
+const shot = (ball: BallId): Shot => ({
+  ball, strength: 50, spin: "centre", pocket: "top-right",
+});
 const line = (...balls: BallId[]): Shot[] => balls.map(shot);
 
 describe("expectedKindAt", () => {
@@ -76,7 +78,9 @@ describe("appendShot", () => {
   });
 
   it("keeps the chosen strength and spin on the appended shot", () => {
-    const chosen: Shot = { ball: "r1", strength: 85, spin: "low" };
+    const chosen: Shot = {
+      ball: "r1", strength: 85, spin: "low", pocket: "bottom-middle",
+    };
     expect(appendShot(setup, [], chosen)).toEqual([chosen]);
   });
 });

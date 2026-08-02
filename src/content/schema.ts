@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { COLOURS, LESSONS, SPINS, STRENGTHS, type Setup } from "../domain/types";
+import {
+  COLOURS, LESSONS, POCKETS, SPINS, STRENGTHS, type Setup,
+} from "../domain/types";
 
 const ballSchema = z
   .object({
@@ -20,6 +22,8 @@ const stepSchema = z.object({
   acceptableStrength: z.array(z.enum(STRENGTHS)).optional(),
   spin: z.enum(SPINS),
   acceptableSpin: z.array(z.enum(SPINS)).optional(),
+  pocket: z.enum(POCKETS).optional(),
+  acceptablePocket: z.array(z.enum(POCKETS)).optional(),
   why: z.string().optional(),
 });
 

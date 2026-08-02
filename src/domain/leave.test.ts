@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { simulateLine, strengthBand } from "./leave";
+import { simulateLine, strengthBand, suggestedPocket } from "./leave";
 import { BALL_RADIUS } from "../ui/geometry";
-import { TABLE, type Setup, type Shot, type Spin } from "./types";
+import { TABLE, type Pocket, type Setup, type Shot, type Spin } from "./types";
 
 describe("strengthBand", () => {
   it("maps the soft band: 0–33", () => {
@@ -47,9 +47,12 @@ const straightSetup: Setup = {
   ],
 };
 
-const shot = (ball: string, strength: number, spin: Spin): Shot => ({
-  ball, strength, spin,
-});
+const shot = (
+  ball: string,
+  strength: number,
+  spin: Spin,
+  pocket: Pocket = "top-right",
+): Shot => ({ ball, strength, spin, pocket });
 
 const leaveOf = (s: Shot) => simulateLine(straightSetup, [s]).cue;
 
@@ -128,16 +131,22 @@ describe("simulateLine — the single-shot heuristic", () => {
     expect(Math.abs(along)).toBeLessThan(0.05);
   });
 
-  it("chooses the natural pocket over an absurd one", () => {
-    // Top spin follows the pot line — so the white heading toward the
-    // top-right corner is observable proof that corner was chosen.
-    const rest = leaveOf(shot("r1", 20, "top"));
-    const towardsCorner = distance(rest, CORNER) < distance(RED, CORNER);
-    const oppositeCorner = { x: 0, y: TABLE.height };
-    const towardsOpposite =
-      distance(rest, oppositeCorner) < distance(RED, oppositeCorner);
-    expect(towardsCorner).toBe(true);
-    expect(towardsOpposite).toBe(false);
+  it("suggests the easiest pocket — straightest cut from the white", () => {
+    // Cue, red and the top-right corner are collinear in this fixture.
+    expect(suggestedPocket(CUE, RED)).toBe("top-right");
+    // From below the red the straightest available pot is still top-right.
+    expect(suggestedPocket({ x: 3069, y: 1400 }, RED)).toBe("top-right");
+  });
+
+  it("pots along the Shot's pocket, not a guess", () => {
+    // The same shot into two different pockets must rest in visibly
+    // different places, each nearer its own pocket than the red is.
+    const toCorner = leaveOf(shot("r1", 20, "top", "top-right"));
+    const toMiddle = leaveOf(shot("r1", 20, "top", "bottom-middle"));
+    const middle = { x: TABLE.width / 2, y: TABLE.height };
+    expect(distance(toCorner, CORNER)).toBeLessThan(distance(RED, CORNER));
+    expect(distance(toMiddle, middle)).toBeLessThan(distance(RED, middle));
+    expect(distance(toCorner, toMiddle)).toBeGreaterThan(200);
   });
 });
 

@@ -39,6 +39,36 @@ describe("parseSetup", () => {
     expect(() => parseSetup(noLesson)).toThrow();
   });
 
+  it("accepts an authored pocket and acceptable pockets", () => {
+    const withPocket = {
+      ...valid,
+      coachedLine: [
+        { ...valid.coachedLine[0], pocket: "top-right", acceptablePocket: ["top-middle"] },
+        ...valid.coachedLine.slice(1),
+      ],
+    };
+    expect(parseSetup(withPocket).coachedLine[0].pocket).toBe("top-right");
+  });
+
+  it("rejects a pocket outside the fixed six, in either field", () => {
+    const badPocket = {
+      ...valid,
+      coachedLine: [
+        { ...valid.coachedLine[0], pocket: "side" },
+        ...valid.coachedLine.slice(1),
+      ],
+    };
+    expect(() => parseSetup(badPocket)).toThrow();
+    const badAcceptable = {
+      ...valid,
+      coachedLine: [
+        { ...valid.coachedLine[0], pocket: "top-right", acceptablePocket: ["side"] },
+        ...valid.coachedLine.slice(1),
+      ],
+    };
+    expect(() => parseSetup(badAcceptable)).toThrow();
+  });
+
   it("rejects duplicate ball ids", () => {
     const bad = {
       ...valid,

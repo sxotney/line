@@ -1,5 +1,8 @@
-import { BALL_RADIUS, pocketCentres } from "../ui/geometry";
-import { TABLE, type BallId, type Setup, type Shot, type Strength } from "./types";
+import { BALL_RADIUS, POCKET_CENTRES } from "../ui/geometry";
+import {
+  POCKETS, TABLE,
+  type BallId, type Pocket, type Setup, type Shot, type Strength,
+} from "./types";
 
 // Alex sets strength on a continuous 0–100 slider; coaching and judging
 // happen in the three named bands marked on its track (CONTEXT.md,
@@ -41,16 +44,17 @@ function normalize(v: Point): Point {
   return len === 0 ? { x: 0, y: 0 } : scale(v, 1 / len);
 }
 
-// The natural pocket: straightest cut from where the white sits, ties
-// broken by distance. The pot always succeeds — this is a planning aid,
-// never a pot judge (ADR 0005).
-function naturalPocket(cue: Point, object: Point): Point {
+// The Suggested pocket: the easiest pot — straightest cut from where the
+// white sits, ties broken by distance. Prefilled as every Shot's pocket;
+// the pot always succeeds — this is a planning aid, never a pot judge
+// (ADR 0005).
+export function suggestedPocket(cue: Point, object: Point): Pocket {
   const incoming = normalize(sub(object, cue));
-  let best = pocketCentres()[0]!;
+  let best: Pocket = POCKETS[0];
   let bestCos = -Infinity;
   let bestDistance = Infinity;
-  for (const pocket of pocketCentres()) {
-    const toPocket = sub(pocket, object);
+  for (const id of POCKETS) {
+    const toPocket = sub(POCKET_CENTRES[id], object);
     const pocketDistance = length(toPocket);
     if (pocketDistance === 0) continue;
     const cos = dot(incoming, scale(toPocket, 1 / pocketDistance));
@@ -58,7 +62,7 @@ function naturalPocket(cue: Point, object: Point): Point {
       cos > bestCos + 1e-9 ||
       (Math.abs(cos - bestCos) <= 1e-9 && pocketDistance < bestDistance)
     ) {
-      best = pocket;
+      best = id;
       bestCos = cos;
       bestDistance = pocketDistance;
     }
@@ -119,7 +123,7 @@ function runWithCushions(start: Point, dir: Point, travel: number): Point[] {
 // point and departs along the tangent line, bent toward the pot line by
 // top and away by low, running a distance set by the raw strength value.
 function predictLeave(cue: Point, object: Point, shot: Shot): Point[] {
-  const pocket = naturalPocket(cue, object);
+  const pocket = POCKET_CENTRES[shot.pocket];
   const potDir = normalize(sub(pocket, object));
   const contact = add(object, scale(potDir, -BALL_RADIUS * 2));
   const incoming = normalize(sub(contact, cue));

@@ -42,6 +42,20 @@ describe("SETUPS", () => {
     }
   });
 
+  it("authors a coached pocket in the cushion-work and positional setups", () => {
+    const shouldCoachPockets = [
+      "stay-on-the-blue", "two-ways-in",
+      "off-the-top-cushion", "cannon-into-the-pair",
+    ];
+    for (const id of shouldCoachPockets) {
+      const setup = SETUPS.find((s) => s.id === id)!;
+      expect(
+        setup.coachedLine.some((step) => step.pocket),
+        `${id} coaches no pocket`,
+      ).toBe(true);
+    }
+  });
+
   it("has unique setup ids", () => {
     const ids = SETUPS.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);

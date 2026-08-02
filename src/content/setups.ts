@@ -91,9 +91,9 @@ const raw = [
       { id: "cue", kind: "cue", x: 1300, y: 700 },
     ],
     coachedLine: [
-      { ball: "r1", strength: "medium", spin: "low", why: "Screw back towards the middle — from the centre of the table every red is on." },
+      { ball: "r1", strength: "medium", spin: "low", pocket: "top-right", why: "Screw back towards the middle — from the centre of the table every red is on." },
       { ball: "blue", strength: "soft", spin: "centre", why: "The blue is your home base here. Pot it and you're still in the middle, with the whole table open." },
-      { ball: "r2", strength: "medium", spin: "centre" },
+      { ball: "r2", strength: "medium", spin: "centre", pocket: "bottom-right" },
       { ball: "blue", strength: "soft", spin: "centre", why: "Back to the blue — it re-spots, so the middle keeps being home." },
       { ball: "r3", strength: "soft", spin: "top" },
       { ball: "blue", strength: "soft", spin: "centre" },
@@ -112,7 +112,7 @@ const raw = [
       { id: "cue", kind: "cue", x: 2000, y: 1000 },
     ],
     coachedLine: [
-      { ball: "r1", strength: "firm", spin: "top", why: "Play it firm with top. The white runs on, kisses the top cushion and comes back out into the open — let the cushion do the work for you." },
+      { ball: "r1", strength: "firm", spin: "top", pocket: "top-right", why: "Play it firm with top, into the top right. The white runs on, kisses the top cushion and comes back out into the open — let the cushion do the work for you." },
       { ball: "black", strength: "soft", spin: "centre", why: "The cushion has brought you back onto the black's side." },
       { ball: "r2", strength: "medium", spin: "centre" },
       { ball: "pink", acceptable: ["black"], strength: "soft", spin: "centre" },
@@ -154,9 +154,9 @@ const raw = [
       { id: "cue", kind: "cue", x: 2300, y: 400 },
     ],
     coachedLine: [
-      { ball: "r1", strength: "soft", spin: "low", why: "Come into this red on its left side — soft screw holds the white above the black, not below it." },
+      { ball: "r1", strength: "soft", spin: "low", pocket: "top-right", why: "Come into this red on its left side — soft screw holds the white above the black, not below it." },
       { ball: "black", strength: "soft", spin: "centre" },
-      { ball: "r2", strength: "medium", spin: "top", why: "Roll through on the correct side so the pink is next, not a long blue." },
+      { ball: "r2", strength: "medium", spin: "top", pocket: "bottom-right", why: "Roll through on the correct side so the pink is next, not a long blue." },
       { ball: "pink", acceptable: ["black"], strength: "soft", spin: "centre" },
       { ball: "r3", strength: "medium", spin: "centre" },
       { ball: "black", strength: "soft", spin: "centre" },
@@ -199,7 +199,7 @@ const raw = [
     coachedLine: [
       { ball: "r1", strength: "medium", spin: "top" },
       { ball: "blue", strength: "soft", spin: "centre", why: "Hold the middle — the pair of reds can wait." },
-      { ball: "r2", strength: "firm", spin: "top", why: "Firm with top. The white follows through, comes off the bottom cushion and cannons up into the pair, knocking them apart." },
+      { ball: "r2", strength: "firm", spin: "top", pocket: "bottom-right", why: "Firm with top, into the bottom right. The white follows through, comes off the bottom cushion and cannons up into the pair, knocking them apart." },
       { ball: "pink", acceptable: ["black"], strength: "soft", spin: "centre" },
       { ball: "r3", strength: "medium", spin: "centre", why: "The cannon has left them open — pick off the first." },
       { ball: "black", strength: "soft", spin: "centre" },

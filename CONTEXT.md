@@ -49,3 +49,17 @@ _Avoid_: levels, difficulty, stages
 **Re-spot**:
 A potted colour returns to its own spot before the next red, so the same colour can be
 taken again later in the same line. (Standard snooker; modelled faithfully.)
+
+**Shot**:
+One entry in Alex's line: the ball he taps plus the Strength and Spin he'd play it
+with. (M2 — before M2 a line entry was just the ball.)
+
+**Strength**:
+How hard the shot is played: `soft`, `medium`, or `firm`. Kid-sized deliberately —
+coarser than Paths' four paces.
+_Avoid_: pace, power
+
+**Spin**:
+Where the cue strikes vertically: `low` (screw), `centre` (stun), or `top` (follow).
+Kid-sized deliberately — no side spin, no 13-cell grid.
+_Avoid_: tip, screw/stun/follow as field values

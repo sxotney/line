@@ -10,26 +10,55 @@ export function verdictHeadline(result: Result): string {
   return "That's the line.";
 }
 
+// Everything the copy needs to describe one shot, already in words —
+// the ball name comes from ballNamer, strength/spin are their own words.
+export interface ShotWords {
+  ball: string;
+  strength: string;
+  spin: string;
+}
+
+const describe = (shot: ShotWords) =>
+  `${shot.ball} · ${shot.strength} · ${shot.spin}`;
+
+// The parts of the coached shot the chosen shot differs on — so the
+// reference in brackets stays short: "(coached: soft)" not the full triple.
+function differingParts(coached: ShotWords, chosen: ShotWords): string {
+  const parts: string[] = [];
+  if (chosen.ball !== coached.ball) parts.push(coached.ball);
+  if (chosen.strength !== coached.strength) parts.push(coached.strength);
+  if (chosen.spin !== coached.spin) parts.push(coached.spin);
+  return parts.join(" · ");
+}
+
 export function stepLine(
   position: number,
-  coachedName: string,
-  chosenName: string | null,
+  coached: ShotWords,
+  chosen: ShotWords | null,
   verdict: Result["steps"][number]["verdict"],
+  ballVerdict: Result["steps"][number]["ballVerdict"],
 ): string {
-  const label = (name: string) => `${position}. ${name}`;
-
-  if (verdict === "matched") return label(coachedName);
+  if (verdict === "matched") return `${position}. ${describe(coached)}`;
 
   if (verdict === "alternative") {
     // Alex's own choice is the whole point of this branch (ADR 0004) — lead
-    // with what he picked, keep the coached ball visible as the reference.
-    const chosen = chosenName ?? coachedName;
-    return `${label(chosen)} — also fine (coached: ${coachedName})`;
+    // with what he picked, keep the coached reference short.
+    const picked = chosen ?? coached;
+    return `${position}. ${describe(picked)} — also fine (coached: ${
+      differingParts(coached, picked) || describe(coached)
+    })`;
   }
 
-  // divergence: the coached ball stays the subject ("take this one instead"
-  // refers to it), but acknowledge what he actually went for when known —
-  // an unfilled step has no chosen ball to name.
-  const suffix = chosenName ? ` (you went for ${chosenName})` : "";
-  return `${label(coachedName)} — take this one instead${suffix}`;
+  // divergence: the coached shot is the subject. "Take this one instead"
+  // only makes sense when the BALL diverged; when the ball was right and
+  // the strength/spin let it down, say so instead.
+  const subject = `${position}. ${describe(coached)}`;
+  const went = chosen ? ` (you went for ${describe(chosen)})` : "";
+  if (ballVerdict === "divergence" && chosen) {
+    return `${subject} — take this one instead${went}`;
+  }
+  if (chosen) {
+    return `${subject} — right ball, play it like this${went}`;
+  }
+  return subject;
 }

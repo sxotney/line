@@ -11,7 +11,7 @@ const valid = {
     { id: "cue", kind: "cue", x: 400, y: 400 },
   ],
   coachedLine: [
-    { ball: "r1" }, { ball: "black" }, { ball: "r2" }, { ball: "black" },
+    { ball: "r1", strength: "medium", spin: "centre" }, { ball: "black", strength: "soft", spin: "centre" }, { ball: "r2", strength: "medium", spin: "centre" }, { ball: "black", strength: "soft", spin: "centre" },
   ],
 };
 
@@ -29,20 +29,20 @@ describe("parseSetup", () => {
   });
 
   it("rejects a coached line referencing a ball not on the table", () => {
-    const bad = { ...valid, coachedLine: [{ ball: "ghost" }] };
+    const bad = { ...valid, coachedLine: [{ ball: "ghost", strength: "medium", spin: "centre" }] };
     expect(() => parseSetup(bad)).toThrow(/not on the table/i);
   });
 
   it("rejects a coached line that does not alternate red then colour", () => {
     const bad = {
       ...valid,
-      coachedLine: [{ ball: "r1" }, { ball: "r2" }],
+      coachedLine: [{ ball: "r1", strength: "medium", spin: "centre" }, { ball: "r2", strength: "medium", spin: "centre" }],
     };
     expect(() => parseSetup(bad)).toThrow(/alternate/i);
   });
 
   it("rejects a coached line that does not start with a red", () => {
-    const bad = { ...valid, coachedLine: [{ ball: "black" }, { ball: "r1" }] };
+    const bad = { ...valid, coachedLine: [{ ball: "black", strength: "soft", spin: "centre" }, { ball: "r1", strength: "medium", spin: "centre" }] };
     expect(() => parseSetup(bad)).toThrow(/alternate/i);
   });
 
@@ -50,8 +50,8 @@ describe("parseSetup", () => {
     const bad = {
       ...valid,
       coachedLine: [
-        { ball: "r1", acceptable: ["ghost"] },
-        { ball: "black" }, { ball: "r2" }, { ball: "black" },
+        { ball: "r1", acceptable: ["ghost"], strength: "medium", spin: "centre" },
+        { ball: "black", strength: "soft", spin: "centre" }, { ball: "r2", strength: "medium", spin: "centre" }, { ball: "black", strength: "soft", spin: "centre" },
       ],
     };
     expect(() => parseSetup(bad)).toThrow(/not on the table/i);
@@ -86,6 +86,47 @@ describe("parseSetup", () => {
   it("rejects an empty coached line", () => {
     const bad = { ...valid, coachedLine: [] };
     expect(() => parseSetup(bad)).toThrow();
+  });
+
+  it("rejects a step with no strength or spin", () => {
+    const bad = {
+      ...valid,
+      coachedLine: [
+        { ball: "r1" },
+        { ball: "black", strength: "soft", spin: "centre" },
+      ],
+    };
+    expect(() => parseSetup(bad)).toThrow();
+  });
+
+  it("rejects a strength or spin outside the allowed values", () => {
+    const badStrength = {
+      ...valid,
+      coachedLine: [{ ball: "r1", strength: "smash", spin: "centre" }],
+    };
+    expect(() => parseSetup(badStrength)).toThrow();
+
+    const badSpin = {
+      ...valid,
+      coachedLine: [{ ball: "r1", strength: "medium", spin: "side" }],
+    };
+    expect(() => parseSetup(badSpin)).toThrow();
+  });
+
+  it("accepts acceptableStrength and acceptableSpin variants", () => {
+    const withVariants = {
+      ...valid,
+      coachedLine: [
+        {
+          ball: "r1", strength: "medium", acceptableStrength: ["firm"],
+          spin: "low", acceptableSpin: ["centre"],
+        },
+        { ball: "black", strength: "soft", spin: "centre" },
+      ],
+    };
+    const parsed = parseSetup(withVariants);
+    expect(parsed.coachedLine[0].acceptableStrength).toEqual(["firm"]);
+    expect(parsed.coachedLine[0].acceptableSpin).toEqual(["centre"]);
   });
 });
 

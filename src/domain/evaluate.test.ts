@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { evaluate } from "./evaluate";
-import type { Setup } from "./types";
+import type { Setup, Shot, Spin, Strength } from "./types";
 
 const setup: Setup = {
   id: "s1",
@@ -13,52 +13,109 @@ const setup: Setup = {
     { id: "cue", kind: "cue", x: 500, y: 500 },
   ],
   coachedLine: [
-    { ball: "r1", why: "take the awkward red first" },
-    { ball: "black", acceptable: ["blue"], why: "stay low for the next red" },
-    { ball: "r2" },
-    { ball: "blue" },
+    {
+      ball: "r1", strength: "medium", spin: "low",
+      why: "take the awkward red first",
+    },
+    {
+      ball: "black", acceptable: ["blue"],
+      strength: "soft", acceptableStrength: ["medium"], spin: "centre",
+      why: "stay low for the next red",
+    },
+    { ball: "r2", strength: "medium", spin: "top" },
+    { ball: "blue", strength: "soft", spin: "centre" },
   ],
 };
 
+// Build the shot the coached line asks for at a given step, optionally
+// overridden — keeps each test about the one axis it varies.
+function coachedShot(
+  index: number,
+  override?: Partial<Shot>,
+): Shot {
+  const step = setup.coachedLine[index]!;
+  return {
+    ball: step.ball,
+    strength: step.strength,
+    spin: step.spin,
+    ...override,
+  };
+}
+
+const coachedFull = (): Shot[] =>
+  setup.coachedLine.map((_, i) => coachedShot(i));
+
 describe("evaluate", () => {
-  it("marks every step matched when the line is the coached line", () => {
-    const result = evaluate(setup, ["r1", "black", "r2", "blue"]);
+  it("marks every step and axis matched when the line is the coached line", () => {
+    const result = evaluate(setup, coachedFull());
     expect(result.steps.map((s) => s.verdict)).toEqual([
       "matched", "matched", "matched", "matched",
     ]);
+    expect(result.steps.every((s) =>
+      s.ballVerdict === "matched" &&
+      s.strengthVerdict === "matched" &&
+      s.spinVerdict === "matched",
+    )).toBe(true);
     expect(result.firstDivergence).toBeNull();
     expect(result.complete).toBe(true);
   });
 
   it("marks a ball in the acceptable set as an alternative, not a divergence", () => {
-    const result = evaluate(setup, ["r1", "blue", "r2", "blue"]);
+    const line = coachedFull();
+    line[1] = coachedShot(1, { ball: "blue" });
+    const result = evaluate(setup, line);
+    expect(result.steps[1].ballVerdict).toBe("alternative");
     expect(result.steps[1].verdict).toBe("alternative");
     expect(result.firstDivergence).toBeNull();
   });
 
+  it("marks an acceptable strength as an alternative on that axis only", () => {
+    const line = coachedFull();
+    line[1] = coachedShot(1, { strength: "medium" as Strength });
+    const result = evaluate(setup, line);
+    expect(result.steps[1].strengthVerdict).toBe("alternative");
+    expect(result.steps[1].ballVerdict).toBe("matched");
+    expect(result.steps[1].verdict).toBe("alternative");
+  });
+
+  it("marks a strength outside the acceptable set as a divergence", () => {
+    const line = coachedFull();
+    line[0] = coachedShot(0, { strength: "firm" as Strength });
+    const result = evaluate(setup, line);
+    expect(result.steps[0].strengthVerdict).toBe("divergence");
+    expect(result.steps[0].verdict).toBe("divergence");
+    expect(result.firstDivergence).toBe(0);
+  });
+
+  it("marks the spin axis independently of the ball axis", () => {
+    const line = coachedFull();
+    line[2] = coachedShot(2, { spin: "low" as Spin });
+    const result = evaluate(setup, line);
+    expect(result.steps[2].spinVerdict).toBe("divergence");
+    expect(result.steps[2].ballVerdict).toBe("matched");
+    expect(result.steps[2].verdict).toBe("divergence");
+    expect(result.firstDivergence).toBe(2);
+  });
+
   it("records the first divergence and keeps evaluating later steps", () => {
-    const result = evaluate(setup, ["r2", "black", "r2", "blue"]);
+    const line = coachedFull();
+    line[0] = coachedShot(0, { ball: "r2" });
+    const result = evaluate(setup, line);
     expect(result.steps[0].verdict).toBe("divergence");
     expect(result.steps[1].verdict).toBe("matched");
     expect(result.firstDivergence).toBe(0);
   });
 
-  it("reports only the FIRST divergence index when there are several", () => {
-    const result = evaluate(setup, ["r2", "blue", "r1", "black"]);
-    expect(result.firstDivergence).toBe(0);
-    expect(result.steps[3].verdict).toBe("divergence");
-  });
-
   it("treats a short line as incomplete and pads missing steps with null", () => {
-    const result = evaluate(setup, ["r1", "black"]);
+    const result = evaluate(setup, [coachedShot(0), coachedShot(1)]);
     expect(result.complete).toBe(false);
     expect(result.steps).toHaveLength(4);
     expect(result.steps[2].chosen).toBeNull();
     expect(result.steps[2].verdict).toBe("divergence");
   });
 
-  it("ignores taps beyond the length of the coached line", () => {
-    const result = evaluate(setup, ["r1", "black", "r2", "blue", "black"]);
+  it("ignores shots beyond the length of the coached line", () => {
+    const result = evaluate(setup, [...coachedFull(), coachedShot(1)]);
     expect(result.steps).toHaveLength(4);
     expect(result.complete).toBe(true);
   });
@@ -67,10 +124,16 @@ describe("evaluate", () => {
     const respot: Setup = {
       ...setup,
       coachedLine: [
-        { ball: "r1" }, { ball: "black" }, { ball: "r2" }, { ball: "black" },
+        { ball: "r1", strength: "medium", spin: "centre" },
+        { ball: "black", strength: "soft", spin: "centre" },
+        { ball: "r2", strength: "medium", spin: "centre" },
+        { ball: "black", strength: "soft", spin: "centre" },
       ],
     };
-    const result = evaluate(respot, ["r1", "black", "r2", "black"]);
+    const line: Shot[] = respot.coachedLine.map((s) => ({
+      ball: s.ball, strength: s.strength, spin: s.spin,
+    }));
+    const result = evaluate(respot, line);
     expect(result.steps.map((s) => s.verdict)).toEqual([
       "matched", "matched", "matched", "matched",
     ]);

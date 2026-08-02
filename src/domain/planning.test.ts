@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  appendTap, expectedKindAt, isLineComplete, tappableBalls, undoTap,
+  appendShot, expectedKindAt, isLineComplete, tappableBalls, undoTap,
 } from "./planning";
-import type { Setup } from "./types";
+import type { BallId, Setup, Shot } from "./types";
 
 const setup: Setup = {
   id: "s1",
@@ -15,9 +15,16 @@ const setup: Setup = {
     { id: "cue", kind: "cue", x: 5, y: 5 },
   ],
   coachedLine: [
-    { ball: "r1" }, { ball: "black" }, { ball: "r2" }, { ball: "blue" },
+    { ball: "r1", strength: "medium", spin: "centre" },
+    { ball: "black", strength: "soft", spin: "centre" },
+    { ball: "r2", strength: "medium", spin: "centre" },
+    { ball: "blue", strength: "soft", spin: "centre" },
   ],
 };
+
+// Strength/spin never affect legality — any values will do in these tests.
+const shot = (ball: BallId): Shot => ({ ball, strength: "medium", spin: "centre" });
+const line = (...balls: BallId[]): Shot[] => balls.map(shot);
 
 describe("expectedKindAt", () => {
   it("alternates red at even indices and colour at odd", () => {
@@ -33,15 +40,15 @@ describe("tappableBalls", () => {
   });
 
   it("offers only colours after a red", () => {
-    expect(tappableBalls(setup, ["r1"])).toEqual(["black", "blue"]);
+    expect(tappableBalls(setup, line("r1"))).toEqual(["black", "blue"]);
   });
 
   it("excludes reds already taken", () => {
-    expect(tappableBalls(setup, ["r1", "black"])).toEqual(["r2"]);
+    expect(tappableBalls(setup, line("r1", "black"))).toEqual(["r2"]);
   });
 
   it("offers colours again because they re-spot", () => {
-    expect(tappableBalls(setup, ["r1", "black", "r2"])).toEqual([
+    expect(tappableBalls(setup, line("r1", "black", "r2"))).toEqual([
       "black", "blue",
     ]);
   });
@@ -51,24 +58,31 @@ describe("tappableBalls", () => {
   });
 
   it("offers nothing once the line is complete", () => {
-    expect(tappableBalls(setup, ["r1", "black", "r2", "blue"])).toEqual([]);
+    expect(tappableBalls(setup, line("r1", "black", "r2", "blue"))).toEqual([]);
   });
 });
 
-describe("appendTap", () => {
-  it("appends a legal tap", () => {
-    expect(appendTap(setup, [], "r1")).toEqual(["r1"]);
+describe("appendShot", () => {
+  it("appends a legal shot", () => {
+    expect(appendShot(setup, [], shot("r1"))).toEqual([shot("r1")]);
   });
 
-  it("ignores an illegal tap", () => {
-    expect(appendTap(setup, [], "black")).toEqual([]);
-    expect(appendTap(setup, ["r1", "black"], "r1")).toEqual(["r1", "black"]);
+  it("ignores a shot on an illegal ball", () => {
+    expect(appendShot(setup, [], shot("black"))).toEqual([]);
+    expect(appendShot(setup, line("r1", "black"), shot("r1"))).toEqual(
+      line("r1", "black"),
+    );
+  });
+
+  it("keeps the chosen strength and spin on the appended shot", () => {
+    const chosen: Shot = { ball: "r1", strength: "firm", spin: "low" };
+    expect(appendShot(setup, [], chosen)).toEqual([chosen]);
   });
 });
 
 describe("undoTap", () => {
-  it("removes the last tap", () => {
-    expect(undoTap(["r1", "black"])).toEqual(["r1"]);
+  it("removes the last shot", () => {
+    expect(undoTap(line("r1", "black"))).toEqual(line("r1"));
   });
 
   it("is safe on an empty line", () => {
@@ -78,7 +92,7 @@ describe("undoTap", () => {
 
 describe("isLineComplete", () => {
   it("is true only when the line matches the coached line length", () => {
-    expect(isLineComplete(setup, ["r1", "black", "r2"])).toBe(false);
-    expect(isLineComplete(setup, ["r1", "black", "r2", "blue"])).toBe(true);
+    expect(isLineComplete(setup, line("r1", "black", "r2"))).toBe(false);
+    expect(isLineComplete(setup, line("r1", "black", "r2", "blue"))).toBe(true);
   });
 });

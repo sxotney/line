@@ -3,12 +3,14 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SETUPS } from "../content/setups";
 import { evaluate, type Result } from "../domain/evaluate";
 import {
-  appendTap, isLineComplete, tappableBalls, undoTap,
+  appendShot, isLineComplete, tappableBalls, undoTap,
 } from "../domain/planning";
-import type { BallId } from "../domain/types";
+import type { BallId, Shot, Spin, Strength } from "../domain/types";
 import { nextIndex } from "../domain/ladder";
 import { loadLadderIndex, saveLadderIndex } from "../state/ladderStorage";
+import { ballNamer } from "../ui/ballNames";
 import { Reveal } from "../ui/Reveal";
+import { ShotPicker } from "../ui/ShotPicker";
 import { TableView } from "../ui/TableView";
 
 // Clamp a stored ladder index into the valid range for the current
@@ -23,7 +25,9 @@ function clampToCatalogue(index: number): number {
 
 export function PlayScreen() {
   const [index, setIndex] = useState(0);
-  const [line, setLine] = useState<BallId[]>([]);
+  const [line, setLine] = useState<Shot[]>([]);
+  // The ball just tapped, awaiting its strength + spin in the ShotPicker.
+  const [pendingBall, setPendingBall] = useState<BallId | null>(null);
   const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {
@@ -34,53 +38,80 @@ export function PlayScreen() {
   if (!setup) return null;
 
   const done = isLineComplete(setup, line);
+  const isLast = index >= SETUPS.length - 1;
 
   const restart = (nextSetupIndex: number) => {
     const clamped = clampToCatalogue(nextSetupIndex);
     setIndex(clamped);
     setLine([]);
+    setPendingBall(null);
     setResult(null);
     void saveLadderIndex(clamped);
   };
 
   if (result) {
-    const isLastSetup = index >= SETUPS.length - 1;
     return (
       <Reveal
         setup={setup}
         result={result}
-        onTryAgain={() => { setLine([]); setResult(null); }}
-        onNext={isLastSetup ? undefined : () => restart(nextIndex(index, SETUPS.length))}
+        onTryAgain={() => { setLine([]); setPendingBall(null); setResult(null); }}
+        onNext={
+          isLast ? undefined : () => restart(nextIndex(index, SETUPS.length))
+        }
       />
     );
   }
+
+  const commitShot = (strength: Strength, spin: Spin) => {
+    if (pendingBall === null) return;
+    const shot: Shot = { ball: pendingBall, strength, spin };
+    setLine((current) => appendShot(setup, current, shot));
+    setPendingBall(null);
+  };
+
+  // TableView reports taps on every ball; only a legally tappable one opens
+  // the picker. An illegal tap is ignored, matching appendShot's contract.
+  const onTapBall = (ball: BallId) => {
+    if (pendingBall === null && tappableBalls(setup, line).includes(ball)) {
+      setPendingBall(ball);
+    }
+  };
 
   return (
     <View style={styles.screen}>
       <View style={styles.table}>
         <TableView
           balls={setup.balls}
-          sequence={line}
-          tappable={tappableBalls(setup, line)}
-          onTapBall={(id) => setLine((current) => appendTap(setup, current, id))}
+          sequence={line.map((shot) => shot.ball)}
+          tappable={pendingBall === null ? tappableBalls(setup, line) : []}
+          onTapBall={onTapBall}
+          highlight={pendingBall}
         />
       </View>
-      <View style={styles.bar}>
-        <Pressable
-          style={styles.secondary}
-          onPress={() => setLine(undoTap)}
-          disabled={line.length === 0}
-        >
-          <Text style={styles.secondaryText}>Undo</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.primary, !done && styles.disabled]}
-          onPress={() => setResult(evaluate(setup, line))}
-          disabled={!done}
-        >
-          <Text style={styles.primaryText}>Done</Text>
-        </Pressable>
-      </View>
+      {pendingBall !== null ? (
+        <ShotPicker
+          ballName={ballNamer(setup)(pendingBall)}
+          onCommit={commitShot}
+          onCancel={() => setPendingBall(null)}
+        />
+      ) : (
+        <View style={styles.bar}>
+          <Pressable
+            style={styles.secondary}
+            onPress={() => setLine(undoTap)}
+            disabled={line.length === 0}
+          >
+            <Text style={styles.secondaryText}>Undo</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.primary, !done && styles.disabled]}
+            onPress={() => setResult(evaluate(setup, line))}
+            disabled={!done}
+          >
+            <Text style={styles.primaryText}>Done</Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }

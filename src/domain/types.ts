@@ -16,9 +16,28 @@ export interface Ball {
   y: number;
 }
 
+// Kid-sized deliberately: three strengths, three vertical spins, no side.
+// Coarser than Paths' 13-cell tip grid + 4 paces on purpose.
+export const STRENGTHS = ["soft", "medium", "firm"] as const;
+export type Strength = (typeof STRENGTHS)[number];
+
+export const SPINS = ["low", "centre", "top"] as const;
+export type Spin = (typeof SPINS)[number];
+
+// One entry in Alex's line: the ball he taps plus how he'd play the shot.
+export interface Shot {
+  ball: BallId;
+  strength: Strength;
+  spin: Spin;
+}
+
 export interface Step {
   ball: BallId;
   acceptable?: BallId[];
+  strength: Strength;
+  acceptableStrength?: Strength[];
+  spin: Spin;
+  acceptableSpin?: Spin[];
   why?: string;
 }
 

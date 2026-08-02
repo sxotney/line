@@ -29,11 +29,22 @@ he commits his own.
 - Content as typed JSON, bundled, validated at load (ADR 0003).
 - Delivered as **Expo web export on GitHub Pages** (ADR 0001).
 
-### Out of scope (MVP) — deliberately deferred
-- In-app editor (ADR 0003) · cue-ball position / "where you leave it" · the final colour
-  clearance (yellow→black, a fixed order — a position exercise, not sequencing) ·
-  procedural generation · difficulty picker / levels UI · streaks/points/badges/% ·
-  accounts/backend · native Android build (one command away later).
+### Added in M2 (2026-08-02)
+- **Shots**: each line entry is now a Shot — ball + Strength (`soft/medium/firm`) +
+  Spin (`low/centre/top`). Kid-sized 3×3 deliberately (no side, no 13-cell grid).
+- The ShotPicker appears after each ball tap; committing happens when both a strength
+  and a spin are chosen. Undo cancels the pending pick first, then removes shots.
+- Steps author coached `strength`/`spin` with optional `acceptableStrength`/
+  `acceptableSpin` — judged per axis in the Reveal with the same
+  matched / alternative / divergence treatment as the ball.
+- The Reveal shows the table with the coached order badged on the balls and the
+  teaching-moment ball highlighted.
+
+### Out of scope — deliberately deferred
+- In-app editor (ADR 0003) · cue-ball position / "where you leave it" · side spin ·
+  the final colour clearance (yellow→black, a fixed order — a position exercise, not
+  sequencing) · procedural generation · difficulty picker / levels UI ·
+  streaks/points/badges/% · accounts/backend · native Android build (one command away).
 
 ## 3. The break-building model (rules fidelity)
 

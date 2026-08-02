@@ -2,7 +2,8 @@ import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { Result } from "../domain/evaluate";
 import type { Setup } from "../domain/types";
-import { stepLine, verdictHeadline } from "./revealCopy";
+import { ballNamer } from "./ballNames";
+import { stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
 import { TableView } from "./TableView";
 
 export interface RevealProps {
@@ -16,29 +17,7 @@ export interface RevealProps {
 }
 
 export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
-  // Number the reds by their order of appearance in setup.balls, so the
-  // coached line can say "red 1", "red 2", ... instead of the ambiguous
-  // "red" that every red ball would otherwise share.
-  const redNumbers = new Map<string, number>();
-  let redCount = 0;
-  for (const ball of setup.balls) {
-    if (ball.kind === "red") {
-      redCount += 1;
-      redNumbers.set(ball.id, redCount);
-    }
-  }
-
-  const nameOf = (id: string) => {
-    const ball = setup.balls.find((b) => b.id === id);
-    if (!ball) return id;
-    if (ball.kind === "colour") {
-      // colour balls always have a colour for data that passed through
-      // parseSetup, but that invariant is only enforced at runtime — fall
-      // back to a visible, non-throwing label rather than asserting it.
-      return ball.colour ?? "colour";
-    }
-    return `red ${redNumbers.get(ball.id) ?? "?"}`;
-  };
+  const nameOf = ballNamer(setup);
 
   // Show the table with the COACHED order badged onto the balls, so every
   // "red 2" / "step 5" in the text has a visible referent. The ball at the
@@ -65,14 +44,28 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
         {result.steps.map((stepResult, i) => {
           const step = setup.coachedLine[i];
           const isTeachingMoment = result.firstDivergence === i;
-          const chosenName = stepResult.chosen ? nameOf(stepResult.chosen) : null;
+          const coached: ShotWords = {
+            ball: nameOf(step.ball),
+            strength: step.strength,
+            spin: step.spin,
+          };
+          const chosen: ShotWords | null = stepResult.chosen
+            ? {
+                ball: nameOf(stepResult.chosen.ball),
+                strength: stepResult.chosen.strength,
+                spin: stepResult.chosen.spin,
+              }
+            : null;
           return (
             <View
               key={i}
               style={[styles.step, isTeachingMoment && styles.teachingMoment]}
             >
               <Text style={styles.stepText}>
-                {stepLine(i + 1, nameOf(step.ball), chosenName, stepResult.verdict)}
+                {stepLine(
+                  i + 1, coached, chosen,
+                  stepResult.verdict, stepResult.ballVerdict,
+                )}
               </Text>
               {step.why && <Text style={styles.why}>{step.why}</Text>}
             </View>

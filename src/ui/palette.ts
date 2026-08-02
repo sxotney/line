@@ -14,3 +14,9 @@ export const BALL_FILL: Record<Colour | "red" | "cue", string> = {
   black: "#141414",
   cue: "#f7f4ec",
 };
+
+// Deliberately garish and unlike any real ball colour: renders visibly
+// instead of vanishing if a "colour" ball ever reaches TableView without
+// its `colour` field set. Should never happen for data that passed
+// through parseSetup, but the component can't assume that route.
+export const MISSING_COLOUR_FILL = "#ff00ff";

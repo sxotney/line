@@ -3,7 +3,7 @@ import Svg, { Circle, Rect, Text as SvgText } from "react-native-svg";
 import type { Ball, BallId } from "../domain/types";
 import { TABLE } from "../domain/types";
 import { BALL_RADIUS, CUSHION, POCKET_RADIUS, pocketCentres, viewBox } from "./geometry";
-import { BALL_FILL, CLOTH, CUSHION_COLOUR, POCKET } from "./palette";
+import { BALL_FILL, CLOTH, CUSHION_COLOUR, MISSING_COLOUR_FILL, POCKET } from "./palette";
 
 export interface TableViewProps {
   balls: Ball[];
@@ -32,7 +32,9 @@ export function TableView({
       {balls.map((ball) => {
         const order = sequence.indexOf(ball.id);
         const isTappable = tappable.includes(ball.id);
-        const fill = ball.kind === "colour" ? BALL_FILL[ball.colour!] : BALL_FILL[ball.kind];
+        const fill = ball.kind === "colour"
+          ? (ball.colour ? BALL_FILL[ball.colour] : MISSING_COLOUR_FILL)
+          : BALL_FILL[ball.kind];
         return (
           <React.Fragment key={ball.id}>
             <Circle
@@ -40,7 +42,11 @@ export function TableView({
               fill={fill}
               stroke={highlight === ball.id ? "#ffffff" : isTappable ? "#ffffff" : "none"}
               strokeWidth={highlight === ball.id ? 10 : isTappable ? 4 : 0}
-              opacity={isTappable || order !== -1 || ball.kind === "cue" ? 1 : 0.55}
+              opacity={
+                isTappable || order !== -1 || ball.kind === "cue" || highlight === ball.id
+                  ? 1
+                  : 0.55
+              }
               onPress={() => onTapBall(ball.id)}
             />
             {order !== -1 && (

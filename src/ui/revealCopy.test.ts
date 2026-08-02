@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { verdictHeadline } from "./revealCopy";
+import { stepLine, verdictHeadline } from "./revealCopy";
 import type { Result } from "../domain/evaluate";
 
 const make = (verdicts: Result["steps"][number]["verdict"][]): Result => ({
@@ -26,9 +26,28 @@ describe("verdictHeadline", () => {
   });
 
   it("never mentions a score, percentage or streak", () => {
-    const all = [make(["matched"]), make(["alternative"]), make(["divergence"])]
-      .map(verdictHeadline)
-      .join(" ");
+    const headlines = [make(["matched"]), make(["alternative"]), make(["divergence"])]
+      .map(verdictHeadline);
+    const steps = [
+      stepLine(1, "red 1", "matched"),
+      stepLine(2, "blue", "alternative"),
+      stepLine(3, "black", "divergence"),
+    ];
+    const all = [...headlines, ...steps].join(" ");
     expect(all).not.toMatch(/score|%|streak|wrong|incorrect|fail/i);
+  });
+});
+
+describe("stepLine", () => {
+  it("renders a matched step with just the position and ball name", () => {
+    expect(stepLine(1, "red 1", "matched")).toBe("1. red 1");
+  });
+
+  it("renders an alternative step as also fine", () => {
+    expect(stepLine(2, "blue", "alternative")).toBe("2. blue — also fine");
+  });
+
+  it("renders a divergence step as take this one instead", () => {
+    expect(stepLine(3, "black", "divergence")).toBe("3. black — take this one instead");
   });
 });

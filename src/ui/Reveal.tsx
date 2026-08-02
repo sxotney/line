@@ -12,16 +12,34 @@ export interface RevealProps {
 }
 
 export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
+  // Number the reds by their order of appearance in setup.balls, so the
+  // coached line can say "red 1", "red 2", ... instead of the ambiguous
+  // "red" that every red ball would otherwise share.
+  const redNumbers = new Map<string, number>();
+  let redCount = 0;
+  for (const ball of setup.balls) {
+    if (ball.kind === "red") {
+      redCount += 1;
+      redNumbers.set(ball.id, redCount);
+    }
+  }
+
   const nameOf = (id: string) => {
     const ball = setup.balls.find((b) => b.id === id);
     if (!ball) return id;
-    return ball.kind === "colour" ? ball.colour! : "red";
+    if (ball.kind === "colour") {
+      // colour balls always have a colour for data that passed through
+      // parseSetup, but that invariant is only enforced at runtime — fall
+      // back to a visible, non-throwing label rather than asserting it.
+      return ball.colour ?? "colour";
+    }
+    return `red ${redNumbers.get(ball.id) ?? "?"}`;
   };
 
   return (
     <View style={styles.panel}>
       <Text style={styles.headline}>{verdictHeadline(result)}</Text>
-      <ScrollView>
+      <ScrollView style={styles.steps}>
         {result.steps.map((stepResult, i) => {
           const step = setup.coachedLine[i];
           const isTeachingMoment = result.firstDivergence === i;
@@ -53,6 +71,7 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
 const styles = StyleSheet.create({
   panel: { flex: 1, padding: 16, backgroundColor: "#12241a" },
   headline: { color: "#f7f4ec", fontSize: 20, fontWeight: "700", marginBottom: 12 },
+  steps: { flex: 1 },
   step: { paddingVertical: 6 },
   teachingMoment: {
     borderLeftWidth: 3, borderLeftColor: "#f2c31b", paddingLeft: 8,

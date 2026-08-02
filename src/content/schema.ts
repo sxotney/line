@@ -25,7 +25,7 @@ export const setupSchema = z
     ladderIndex: z.number().int().nonnegative(),
     title: z.string().optional(),
     balls: z.array(ballSchema).min(2),
-    coachedLine: z.array(stepSchema),
+    coachedLine: z.array(stepSchema).min(1),
   })
   .superRefine((setup, ctx) => {
     const ids = setup.balls.map((b) => b.id);
@@ -69,9 +69,9 @@ export const setupSchema = z
   });
 
 export function parseSetup(input: unknown): Setup {
-  return setupSchema.parse(input) as Setup;
+  return setupSchema.parse(input);
 }
 
 export function parseSetups(input: unknown): Setup[] {
-  return z.array(setupSchema).parse(input) as Setup[];
+  return z.array(setupSchema).parse(input);
 }

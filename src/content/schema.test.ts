@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSetup } from "./schema";
+import { parseSetup, parseSetups } from "./schema";
 
 const valid = {
   id: "s1",
@@ -73,5 +73,31 @@ describe("parseSetup", () => {
   it("rejects a setup without exactly one cue ball", () => {
     const bad = { ...valid, balls: valid.balls.filter((b) => b.kind !== "cue") };
     expect(() => parseSetup(bad)).toThrow(/cue/i);
+  });
+
+  it("rejects a setup with two cue balls", () => {
+    const bad = {
+      ...valid,
+      balls: [...valid.balls, { id: "cue2", kind: "cue", x: 500, y: 500 }],
+    };
+    expect(() => parseSetup(bad)).toThrow(/cue/i);
+  });
+
+  it("rejects an empty coached line", () => {
+    const bad = { ...valid, coachedLine: [] };
+    expect(() => parseSetup(bad)).toThrow();
+  });
+});
+
+describe("parseSetups", () => {
+  it("parses an array of valid setups", () => {
+    const other = { ...valid, id: "s2" };
+    const result = parseSetups([valid, other]);
+    expect(result.map((s) => s.id)).toEqual(["s1", "s2"]);
+  });
+
+  it("rejects an array containing an invalid setup", () => {
+    const bad = { ...valid, coachedLine: [] };
+    expect(() => parseSetups([valid, bad])).toThrow();
   });
 });

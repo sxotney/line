@@ -43,8 +43,15 @@ _Avoid_: results, feedback, answer screen
 
 **Ladder**:
 The catalogue of Setups held in a deliberate easy→hard order. Walked in sequence, never
-gated — Alex can always move on.
+gated — Alex can always move on. Curated to interleave Lessons rather than grouping them.
 _Avoid_: levels, difficulty, stages
+
+**Lesson**:
+The one thing a Setup teaches, from a fixed set: `positional-play`, `cluster`,
+`cushion-work`, `awkward-ball-first`, `colour-choice`. Drives ladder curation; surfaces
+to Alex only as one warm coaching line at the top of the Reveal, never as a category
+badge, filter, or picker (ADR 0004).
+_Avoid_: category, type, tag, theme, difficulty
 
 **Re-spot**:
 A potted colour returns to its own spot before the next red, so the same colour can be

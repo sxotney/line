@@ -66,6 +66,22 @@ he commits his own.
   he picks, is never compared to the Coached line during Planning, and `evaluate()` and
   the Reveal are unchanged by it.
 
+### Added in M4 (2026-08-02) — Lessons and the starting pack
+
+- **Lesson**: every Setup declares the one thing it teaches, from a fixed schema enum —
+  `positional-play`, `cluster`, `cushion-work`, `awkward-ball-first`, `colour-choice`.
+  The validator rejects anything outside the set.
+- Alex meets the Lesson in exactly one place: a warm coaching line at the top of the
+  Reveal ("This one was about breaking up the cluster."). Phrased as teaching, never as
+  a category badge — no filters, no pickers, no browsing by Lesson (ADR 0004 holds).
+- Internally the Lesson drives Ladder curation: interleave Lessons, easy→hard overall.
+- **Starting pack**: ten Setups, two per Lesson. The original three are retagged
+  (open-three → colour-choice, awkward-first → awkward-ball-first, hold-the-pack →
+  cluster); seven are newly authored. Cushion-work Setups teach cannons off the cushion
+  through the coached Strength/Spin and the why-text — the pot-only mechanic is
+  unchanged; the cannon lives in the coaching prose and where the Leave puts the white.
+- Coaching prose remains placeholder-quality snooker, to be refined with Carl/Brian.
+
 ### Out of scope — deliberately deferred
 - In-app editor (ADR 0003) · cue-ball position / "where you leave it" · side spin ·
   the final colour clearance (yellow→black, a fixed order — a position exercise, not

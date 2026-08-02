@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { Result } from "../domain/evaluate";
 import type { Setup } from "../domain/types";
 import { stepLine, verdictHeadline } from "./revealCopy";
+import { TableView } from "./TableView";
 
 export interface RevealProps {
   setup: Setup;
@@ -39,8 +40,26 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
     return `red ${redNumbers.get(ball.id) ?? "?"}`;
   };
 
+  // Show the table with the COACHED order badged onto the balls, so every
+  // "red 2" / "step 5" in the text has a visible referent. The ball at the
+  // first divergence is highlighted — that is where to look.
+  const coachedSequence = setup.coachedLine.map((step) => step.ball);
+  const teachingBall =
+    result.firstDivergence === null
+      ? undefined
+      : setup.coachedLine[result.firstDivergence]?.ball;
+
   return (
     <View style={styles.panel}>
+      <View style={styles.table}>
+        <TableView
+          balls={setup.balls}
+          sequence={coachedSequence}
+          tappable={[]}
+          onTapBall={() => {}}
+          highlight={teachingBall}
+        />
+      </View>
       <Text style={styles.headline}>{verdictHeadline(result)}</Text>
       <ScrollView style={styles.steps}>
         {result.steps.map((stepResult, i) => {
@@ -76,8 +95,12 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
 
 const styles = StyleSheet.create({
   panel: { flex: 1, padding: 16, backgroundColor: "#12241a" },
-  headline: { color: "#f7f4ec", fontSize: 20, fontWeight: "700", marginBottom: 12 },
-  steps: { flex: 1 },
+  table: { flex: 5, minHeight: 160 },
+  headline: {
+    color: "#f7f4ec", fontSize: 20, fontWeight: "700",
+    marginTop: 8, marginBottom: 12,
+  },
+  steps: { flex: 4 },
   step: { paddingVertical: 6 },
   teachingMoment: {
     borderLeftWidth: 3, borderLeftColor: "#f2c31b", paddingLeft: 8,

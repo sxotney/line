@@ -139,14 +139,70 @@ describe("simulateLine — the single-shot heuristic", () => {
   });
 
   it("pots along the Shot's pocket, not a guess", () => {
-    // The same shot into two different pockets must rest in visibly
-    // different places, each nearer its own pocket than the red is.
-    const toCorner = leaveOf(shot("r1", 20, "top", "top-right"));
-    const toMiddle = leaveOf(shot("r1", 20, "top", "bottom-middle"));
-    const middle = { x: TABLE.width / 2, y: TABLE.height };
-    expect(distance(toCorner, CORNER)).toBeLessThan(distance(RED, CORNER));
-    expect(distance(toMiddle, middle)).toBeLessThan(distance(RED, middle));
-    expect(distance(toCorner, toMiddle)).toBeGreaterThan(200);
+    // A mid-table red with two genuinely makeable pockets. Under stun the
+    // white leaves along the tangent — perpendicular to the pot line — so
+    // the two pockets throw it to opposite sides of the red.
+    const twoWaySetup: Setup = {
+      ...straightSetup,
+      balls: straightSetup.balls.map((b) => {
+        if (b.id === "r1") return { ...b, x: 2600, y: 889 };
+        if (b.kind === "cue") return { ...b, x: 2000, y: 1200 };
+        return b;
+      }),
+    };
+    const red = { x: 2600, y: 889 };
+    const toTop = simulateLine(twoWaySetup, [shot("r1", 30, "centre", "top-right")]).cue;
+    const toBottom = simulateLine(twoWaySetup, [shot("r1", 30, "centre", "bottom-right")]).cue;
+    // Cutting up to the top pocket sends the white below the red; cutting
+    // down to the bottom pocket sends it above.
+    expect(toTop.y).toBeGreaterThan(red.y);
+    expect(toBottom.y).toBeLessThan(red.y);
+    expect(distance(toTop, toBottom)).toBeGreaterThan(200);
+  });
+
+  it("pulls a followed cut along the original line, not through the pot (30-degree rule)", () => {
+    // A half-ball cut with natural roll deflects roughly 30–35 degrees
+    // from the white's ORIGINAL direction — never straight through the
+    // pot line. Cue → red is horizontal; the pot line to the top-right
+    // corner cuts up at ~45 degrees.
+    const halfBallSetup: Setup = {
+      ...straightSetup,
+      balls: straightSetup.balls.map((b) => {
+        if (b.id === "r1") return { ...b, x: 2862, y: 707 };
+        if (b.kind === "cue") return { ...b, x: 1800, y: 707 };
+        return b;
+      }),
+    };
+    const rest = simulateLine(halfBallSetup, [shot("r1", 15, "top", "top-right")]).cue;
+    const contact = { x: 2862 - 60 * Math.SQRT1_2, y: 707 + 60 * Math.SQRT1_2 };
+    const travelled = distance(rest, contact);
+    expect(travelled).toBeGreaterThan(0);
+    // Deflection from the original (horizontal, +x) direction.
+    const deflection = Math.abs(
+      (Math.atan2(-(rest.y - contact.y), rest.x - contact.x) * 180) / Math.PI,
+    );
+    expect(deflection).toBeGreaterThan(20);
+    expect(deflection).toBeLessThan(45);
+  });
+
+  it("keeps more speed on a thin cut than a full-ball hit", () => {
+    // Same strength, same spin: a thin cut barely slows the white, a
+    // near-straight follow kills most of its pace.
+    const thin = simulateLine(
+      {
+        ...straightSetup,
+        balls: straightSetup.balls.map((b) =>
+          b.kind === "cue" ? { ...b, x: 3069, y: 1400 } : b,
+        ),
+      },
+      [shot("r1", 40, "centre")],
+    ).cue;
+    const straightRest = leaveOf(shot("r1", 40, "top"));
+    const thinTravel = distance(thin, { x: 3026.6, y: 542.4 });
+    const straightTravel = distance(straightRest, {
+      x: 3026.6, y: 542.4,
+    });
+    expect(thinTravel).toBeGreaterThan(straightTravel);
   });
 });
 
@@ -177,7 +233,7 @@ describe("simulateLine — the path", () => {
   });
 
   it("bends at the cushion on an overhit instead of cutting the corner", () => {
-    const state = simulateLine(straightSetup, [shot("r1", 100, "low")]);
+    const state = simulateLine(straightSetup, [shot("r1", 100, "top")]);
     // Between contact and rest there is a waypoint ON a cushion line.
     const onCushion = state.path.slice(2, -1).some(
       (p) =>

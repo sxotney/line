@@ -49,11 +49,15 @@ he commits his own.
   - The pot **always succeeds** — every ball Alex chooses is treated as potted. The
     natural pocket is the one with the straightest cut angle from the white (ties →
     nearest).
-  - The white arrives at the ghost-ball contact point and leaves along the tangent line
-    (`centre`), bent forward toward the pot line (`top`) or pulled back (`low`).
-    Dead-straight pots: stun stops at contact, top follows through, low screws back.
-  - Travel distance scales continuously with the raw Strength value; at most one cushion
-    reflection, then stop, always clamped inside the cushions.
+  - The white arrives at the ghost-ball contact point and departs per the **ideal
+    rolling-ball model** (revised 2026-08-02 from a cruder bend-toward-the-pocket
+    heuristic): stun keeps the tangent component `sinθ·t̂`; top/low give
+    `(5/7)·sinθ·t̂ ± (2/7)·d̂` — the spin pulls along the white's ORIGINAL direction,
+    which reproduces the 30° rule for rolling cuts. Dead-straight pots: stun stops at
+    contact, top follows through at 2/7 speed, low screws straight back.
+  - Travel scales with strength × the speed retained through the contact — a thin cut
+    runs much further than a full-ball hit. One cushion reflection per axis (a bounce
+    halves the remaining run), then stop, always clamped inside the cushions.
   - `simulateLine(setup, shots)` replays the whole line from the start — the **Simulated
     table**: potted reds ghost (sequence badges stay readable), colours re-spot, white at
     the latest Leave. Derived state — undo and Try again just re-fold a shorter line.

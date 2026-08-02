@@ -28,10 +28,19 @@ export interface SimulatedTable {
   path: Point[];
 }
 
-// Kid-plausible tuning knobs, expected to be adjusted after watching Alex
-// use it. The relational test style keeps retuning cheap.
-const MAX_TRAVEL = 2000; // mm the white runs at strength 100
-const SPIN_BEND = 0.8; // how hard top/low bend the tangent toward/away from the pot line
+// The ideal rolling-ball model (the one behind the "30-degree rule").
+// After an equal-mass contact the object ball takes the line-of-centres
+// component; the white keeps the tangent component sinθ·t̂. Retained
+// top/back spin then pulls it along its ORIGINAL direction (the spin axis
+// doesn't know where the pocket is): once natural roll re-establishes,
+// v_final = (5/7)·sinθ·t̂ ± (2/7)·d̂. Travel scales with that retained
+// speed, so a thin cut runs much further than a full-ball hit.
+const ROLL_RETENTION = 5 / 7;
+const SPIN_PULL = 2 / 7;
+// Tuning knobs, expected to be adjusted after watching Alex use it. The
+// relational test style keeps retuning cheap.
+const MAX_TRAVEL = 4800; // mm at strength 100 with all speed retained
+const CUSHION_RESTITUTION = 0.5; // a cushion eats about half the run
 
 const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 const length = (v: Point) => Math.hypot(v.x, v.y);
@@ -106,7 +115,7 @@ function runWithCushions(start: Point, dir: Point, travel: number): Point[] {
       yBounce = false;
     }
     waypoints.push(p);
-    remaining -= t;
+    remaining = (remaining - t) * CUSHION_RESTITUTION;
   }
 
   const rest = add(p, scale(d, remaining));
@@ -128,8 +137,9 @@ function predictLeave(cue: Point, object: Point, shot: Shot): Point[] {
   const contact = add(object, scale(potDir, -BALL_RADIUS * 2));
   const incoming = normalize(sub(contact, cue));
 
-  // The stun departure: the component of the incoming direction
-  // perpendicular to the pot line. Zero for a dead-straight pot.
+  // The stun departure: the tangent — the component of the incoming
+  // direction perpendicular to the pot line, magnitude sinθ. Zero for a
+  // dead-straight pot; nearly everything for a thin cut.
   const tangent = sub(incoming, scale(potDir, dot(incoming, potDir)));
 
   let departure: Point;
@@ -138,22 +148,24 @@ function predictLeave(cue: Point, object: Point, shot: Shot): Point[] {
       departure = tangent;
       break;
     case "top":
-      departure = add(tangent, scale(potDir, SPIN_BEND));
+      departure = add(scale(tangent, ROLL_RETENTION), scale(incoming, SPIN_PULL));
       break;
     case "low":
-      departure = add(tangent, scale(potDir, -SPIN_BEND));
+      departure = sub(scale(tangent, ROLL_RETENTION), scale(incoming, SPIN_PULL));
       break;
   }
 
-  // A dead-straight stun leaves only floating-point noise in the tangent —
-  // treat anything below this as "the white stops where it strikes" rather
-  // than normalizing noise into a full-speed departure.
+  // A dead-straight stun leaves only floating-point noise in the departure
+  // — treat anything below this as "the white stops where it strikes"
+  // rather than normalizing noise into a full-speed run.
   if (length(departure) < 1e-6) {
     return [contact];
   }
   const direction = normalize(departure);
 
-  const travel = (shot.strength / 100) * MAX_TRAVEL;
+  // |departure| is the fraction of the white's speed that survives the
+  // contact — the run length carries it, so thin cuts travel further.
+  const travel = (shot.strength / 100) * MAX_TRAVEL * length(departure);
   return [contact, ...runWithCushions(contact, direction, travel)];
 }
 

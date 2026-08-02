@@ -93,8 +93,9 @@ _Avoid_: default pocket, computer's choice
 
 **Leave**:
 Where a Shot leaves the white — the predicted resting spot of the cue ball, computed by
-a kid-plausible heuristic (pot always succeeds; tangent line bent by Spin; distance from
-Strength). Standard snooker usage: "a good leave".
+the ideal rolling-ball model (pot always succeeds; stun keeps the tangent, top/low pull
+along the white's original line per the 30° rule; distance from Strength × speed
+retained through the contact). Standard snooker usage: "a good leave".
 _Avoid_: cue position, prediction, outcome
 
 **Simulated table**:

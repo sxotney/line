@@ -5,7 +5,7 @@ import { evaluate, type Result } from "../domain/evaluate";
 import {
   appendShot, isLineComplete, tappableBalls, undoTap,
 } from "../domain/planning";
-import type { BallId, Shot, Spin } from "../domain/types";
+import type { BallId, Pocket, Shot, Spin } from "../domain/types";
 import { nextIndex } from "../domain/ladder";
 import { simulateLine, suggestedPocket } from "../domain/leave";
 import { loadLadderIndex, saveLadderIndex } from "../state/ladderStorage";
@@ -27,8 +27,11 @@ function clampToCatalogue(index: number): number {
 export function PlayScreen() {
   const [index, setIndex] = useState(0);
   const [line, setLine] = useState<Shot[]>([]);
-  // The ball just tapped, awaiting its strength + spin in the ShotPicker.
+  // The ball just tapped, awaiting its strength + spin in the ShotPicker,
+  // and the pocket the pot is aimed at — prefilled with the Suggested
+  // pocket, changed by tapping another pocket on the table.
   const [pendingBall, setPendingBall] = useState<BallId | null>(null);
+  const [pendingPocket, setPendingPocket] = useState<Pocket | null>(null);
   const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export function PlayScreen() {
     setIndex(clamped);
     setLine([]);
     setPendingBall(null);
+    setPendingPocket(null);
     setResult(null);
     void saveLadderIndex(clamped);
   };
@@ -55,7 +59,9 @@ export function PlayScreen() {
       <Reveal
         setup={setup}
         result={result}
-        onTryAgain={() => { setLine([]); setPendingBall(null); setResult(null); }}
+        onTryAgain={() => {
+          setLine([]); setPendingBall(null); setPendingPocket(null); setResult(null);
+        }}
         onNext={
           isLast ? undefined : () => restart(nextIndex(index, SETUPS.length))
         }
@@ -64,27 +70,25 @@ export function PlayScreen() {
   }
 
   const commitShot = (strength: number, spin: Spin) => {
-    if (pendingBall === null) return;
-    const object = setup.balls.find((b) => b.id === pendingBall);
-    if (!object) return;
+    if (pendingBall === null || pendingPocket === null) return;
     const shot: Shot = {
-      ball: pendingBall,
-      strength,
-      spin,
-      // The Suggested pocket, until the pocket-tap UI (M5.2) lets Alex
-      // override it. Computed from where the simulated white sits now.
-      pocket: suggestedPocket(simulateLine(setup, line).cue, object),
+      ball: pendingBall, strength, spin, pocket: pendingPocket,
     };
     setLine((current) => appendShot(setup, current, shot));
     setPendingBall(null);
+    setPendingPocket(null);
   };
 
   // TableView reports taps on every ball; only a legally tappable one opens
   // the picker. An illegal tap is ignored, matching appendShot's contract.
   const onTapBall = (ball: BallId) => {
-    if (pendingBall === null && tappableBalls(setup, line).includes(ball)) {
-      setPendingBall(ball);
+    if (pendingBall !== null || !tappableBalls(setup, line).includes(ball)) {
+      return;
     }
+    const object = setup.balls.find((b) => b.id === ball);
+    if (!object) return;
+    setPendingBall(ball);
+    setPendingPocket(suggestedPocket(simulateLine(setup, line).cue, object));
   };
 
   // The Simulated table: the white sits at its latest Leave. Derived from
@@ -115,13 +119,15 @@ export function PlayScreen() {
           highlight={pendingBall}
           potted={simulated.pottedReds}
           cuePath={lineGrew ? simulated.path : null}
+          pocketSelected={pendingPocket}
+          onTapPocket={pendingBall !== null ? setPendingPocket : undefined}
         />
       </View>
       {pendingBall !== null ? (
         <ShotPicker
           ballName={ballNamer(setup)(pendingBall)}
           onCommit={commitShot}
-          onCancel={() => setPendingBall(null)}
+          onCancel={() => { setPendingBall(null); setPendingPocket(null); }}
         />
       ) : (
         <View style={styles.bar}>

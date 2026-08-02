@@ -5,6 +5,7 @@ import { strengthBand } from "../domain/leave";
 import type { Setup } from "../domain/types";
 import { ballNamer } from "./ballNames";
 import { lessonLine, stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
+import { POCKET_WORD } from "./pocketWords";
 import { SPIN_WORD } from "./spinWords";
 import { TableView } from "./TableView";
 
@@ -51,6 +52,9 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
             ball: nameOf(step.ball),
             strength: step.strength,
             spin: SPIN_WORD[step.spin],
+            // Pocket words only where the Step authored one — the judged
+            // axis. Unauthored pockets never surface (ADR 0005).
+            pocket: step.pocket ? POCKET_WORD[step.pocket] : undefined,
           };
           const chosen: ShotWords | null = stepResult.chosen
             ? {
@@ -58,6 +62,9 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
                 // The copy speaks in bands, not raw slider values.
                 strength: strengthBand(stepResult.chosen.strength),
                 spin: SPIN_WORD[stepResult.chosen.spin],
+                pocket: step.pocket
+                  ? POCKET_WORD[stepResult.chosen.pocket]
+                  : undefined,
               }
             : null;
           return (

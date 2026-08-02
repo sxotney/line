@@ -18,9 +18,9 @@ const make = (verdicts: Result["steps"][number]["verdict"][]): Result => ({
   complete: true,
 });
 
-const shot = (ball: string, strength = "medium", spin = "centre"): ShotWords => ({
-  ball, strength, spin,
-});
+const shot = (
+  ball: string, strength = "medium", spin = "centre", pocket?: string,
+): ShotWords => ({ ball, strength, spin, pocket });
 
 describe("verdictHeadline", () => {
   it("affirms a line that matches the coached line", () => {
@@ -100,5 +100,32 @@ describe("stepLine", () => {
   it("renders a divergence with no chosen shot sensibly, without inventing one", () => {
     expect(stepLine(4, shot("black", "soft"), null, "divergence", "divergence"))
       .toBe("4. black · soft · centre");
+  });
+
+  it("names the pocket only when both sides carry one and they differ", () => {
+    expect(stepLine(
+      2,
+      shot("black", "soft", "centre", "top right"),
+      shot("black", "soft", "centre", "top middle"),
+      "alternative", "matched",
+    )).toBe("2. black · soft · centre into the top middle — also fine (coached: top right)");
+
+    expect(stepLine(
+      3,
+      shot("red 2", "medium", "centre", "top right"),
+      shot("red 2", "medium", "centre", "bottom middle"),
+      "divergence", "matched",
+    )).toBe(
+      "3. red 2 · medium · centre into the top right — right ball, play it like this (you went for red 2 · medium · centre into the bottom middle)",
+    );
+  });
+
+  it("stays silent about the pocket when it matches", () => {
+    expect(stepLine(
+      1,
+      shot("red 1", "medium", "top", "top right"),
+      shot("red 1", "medium", "top", "top right"),
+      "matched", "matched",
+    )).toBe("1. red 1 · medium · top");
   });
 });

@@ -2,9 +2,11 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Easing } from "react-native";
 import Svg, { Circle, Rect, Text as SvgText } from "react-native-svg";
 import type { Point } from "../domain/leave";
-import type { Ball, BallId } from "../domain/types";
-import { TABLE } from "../domain/types";
-import { BALL_RADIUS, CUSHION, POCKET_RADIUS, pocketCentres, viewBox } from "./geometry";
+import type { Ball, BallId, Pocket } from "../domain/types";
+import { POCKETS, TABLE } from "../domain/types";
+import {
+  BALL_RADIUS, CUSHION, POCKET_CENTRES, POCKET_RADIUS, viewBox,
+} from "./geometry";
 import { BALL_FILL, CLOTH, CUSHION_COLOUR, MISSING_COLOUR_FILL, POCKET } from "./palette";
 
 export interface TableViewProps {
@@ -20,6 +22,10 @@ export interface TableViewProps {
   // The white's route for its latest move — animated when present, an
   // instant reposition when null (undo, Try again, a fresh Setup).
   cuePath?: Point[] | null;
+  // The pending shot's pocket, ringed on the table. Pockets are tappable
+  // only while onTapPocket is provided (a pick is pending).
+  pocketSelected?: Pocket | null;
+  onTapPocket?: (pocket: Pocket) => void;
 }
 
 const GHOST_OPACITY = 0.25;
@@ -66,6 +72,7 @@ function SlidingCueBall({
 
 export function TableView({
   balls, sequence, tappable, onTapBall, highlight, potted = [], cuePath = null,
+  pocketSelected = null, onTapPocket,
 }: TableViewProps) {
   return (
     <Svg viewBox={viewBox()} width="100%" height="100%">
@@ -76,9 +83,29 @@ export function TableView({
       />
       <Rect x={0} y={0} width={TABLE.width} height={TABLE.height} fill={CLOTH} />
 
-      {pocketCentres().map((p, i) => (
-        <Circle key={`pocket-${i}`} cx={p.x} cy={p.y} r={POCKET_RADIUS} fill={POCKET} />
-      ))}
+      {POCKETS.map((id) => {
+        const p = POCKET_CENTRES[id];
+        return (
+          <React.Fragment key={id}>
+            <Circle cx={p.x} cy={p.y} r={POCKET_RADIUS} fill={POCKET} />
+            {pocketSelected === id && (
+              <Circle
+                cx={p.x} cy={p.y} r={POCKET_RADIUS + 28}
+                fill="none" stroke="#f2c31b" strokeWidth={14}
+              />
+            )}
+            {onTapPocket && (
+              // A generous invisible tap target — the pocket itself is
+              // small at Chromebook size.
+              <Circle
+                cx={p.x} cy={p.y} r={POCKET_RADIUS * 3}
+                fill="transparent"
+                onPress={() => onTapPocket(id)}
+              />
+            )}
+          </React.Fragment>
+        );
+      })}
 
       {balls.map((ball) => {
         // A re-spotted colour can appear more than once in the sequence

@@ -32,15 +32,24 @@ export function verdictHeadline(result: Result): string {
 }
 
 // Everything the copy needs to describe one shot, already in words —
-// the ball name comes from ballNamer, strength/spin are their own words.
+// the ball name comes from ballNamer, strength/spin/pocket are their own
+// words. Pocket words are set only when the Step authored a pocket (so
+// the axis was judged); unauthored steps never mention one.
 export interface ShotWords {
   ball: string;
   strength: string;
   spin: string;
+  pocket?: string;
 }
 
 const describe = (shot: ShotWords) =>
   `${shot.ball} · ${shot.strength} · ${shot.spin}`;
+
+const pocketDiffers = (coached: ShotWords, chosen: ShotWords | null) =>
+  Boolean(coached.pocket && chosen?.pocket && coached.pocket !== chosen.pocket);
+
+// " into the top right" — appended only where the pocket carries teaching.
+const into = (shot: ShotWords) => (shot.pocket ? ` into the ${shot.pocket}` : "");
 
 // The parts of the coached shot the chosen shot differs on — so the
 // reference in brackets stays short: "(coached: soft)" not the full triple.
@@ -49,6 +58,7 @@ function differingParts(coached: ShotWords, chosen: ShotWords): string {
   if (chosen.ball !== coached.ball) parts.push(coached.ball);
   if (chosen.strength !== coached.strength) parts.push(coached.strength);
   if (chosen.spin !== coached.spin) parts.push(coached.spin);
+  if (pocketDiffers(coached, chosen)) parts.push(coached.pocket!);
   return parts.join(" · ");
 }
 
@@ -61,20 +71,24 @@ export function stepLine(
 ): string {
   if (verdict === "matched") return `${position}. ${describe(coached)}`;
 
+  const differ = pocketDiffers(coached, chosen);
+
   if (verdict === "alternative") {
     // Alex's own choice is the whole point of this branch (ADR 0004) — lead
     // with what he picked, keep the coached reference short.
     const picked = chosen ?? coached;
-    return `${position}. ${describe(picked)} — also fine (coached: ${
+    return `${position}. ${describe(picked)}${differ ? into(picked) : ""} — also fine (coached: ${
       differingParts(coached, picked) || describe(coached)
     })`;
   }
 
   // divergence: the coached shot is the subject. "Take this one instead"
   // only makes sense when the BALL diverged; when the ball was right and
-  // the strength/spin let it down, say so instead.
-  const subject = `${position}. ${describe(coached)}`;
-  const went = chosen ? ` (you went for ${describe(chosen)})` : "";
+  // the strength/spin/pocket let it down, say so instead.
+  const subject = `${position}. ${describe(coached)}${differ ? into(coached) : ""}`;
+  const went = chosen
+    ? ` (you went for ${describe(chosen)}${differ ? into(chosen) : ""})`
+    : "";
   if (ballVerdict === "divergence" && chosen) {
     return `${subject} — take this one instead${went}`;
   }

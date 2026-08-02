@@ -1,11 +1,27 @@
 import { describe, expect, it } from "vitest";
 import { SETUPS } from "./setups";
-import { TABLE } from "../domain/types";
+import { LESSONS, TABLE } from "../domain/types";
 import { BALL_RADIUS } from "../ui/geometry";
 
 describe("SETUPS", () => {
-  it("ships at least three setups", () => {
-    expect(SETUPS.length).toBeGreaterThanOrEqual(3);
+  it("ships the starting pack of ten", () => {
+    expect(SETUPS.length).toBe(10);
+  });
+
+  it("covers every Lesson at least twice", () => {
+    for (const lesson of LESSONS) {
+      const count = SETUPS.filter((s) => s.lesson === lesson).length;
+      expect(count, `lesson "${lesson}" has ${count} setups`).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it("interleaves Lessons — no two consecutive setups share one", () => {
+    for (let i = 1; i < SETUPS.length; i += 1) {
+      expect(
+        SETUPS[i].lesson,
+        `setups ${SETUPS[i - 1].id} and ${SETUPS[i].id} sit together on the ladder`,
+      ).not.toBe(SETUPS[i - 1].lesson);
+    }
   });
 
   it("is ordered by ladderIndex ascending", () => {

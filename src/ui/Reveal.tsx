@@ -5,6 +5,7 @@ import { strengthBand } from "../domain/leave";
 import type { Setup } from "../domain/types";
 import { ballNamer } from "./ballNames";
 import { stepLine, verdictHeadline, type ShotWords } from "./revealCopy";
+import { SPIN_WORD } from "./spinWords";
 import { TableView } from "./TableView";
 
 export interface RevealProps {
@@ -48,14 +49,14 @@ export function Reveal({ setup, result, onTryAgain, onNext }: RevealProps) {
           const coached: ShotWords = {
             ball: nameOf(step.ball),
             strength: step.strength,
-            spin: step.spin,
+            spin: SPIN_WORD[step.spin],
           };
           const chosen: ShotWords | null = stepResult.chosen
             ? {
                 ball: nameOf(stepResult.chosen.ball),
                 // The copy speaks in bands, not raw slider values.
                 strength: strengthBand(stepResult.chosen.strength),
-                spin: stepResult.chosen.spin,
+                spin: SPIN_WORD[stepResult.chosen.spin],
               }
             : null;
           return (

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
 import { SPINS, STRENGTHS, type Spin } from "../domain/types";
+import { SPIN_WORD } from "./spinWords";
 
 export interface ShotPickerProps {
   ballName: string;
@@ -132,7 +133,7 @@ export function ShotPicker({ ballName, onCommit, onCancel }: ShotPickerProps) {
             style={[styles.option, spin === s && styles.selected]}
             onPress={() => pickSpin(s)}
           >
-            <Text style={styles.optionText}>{s}</Text>
+            <Text style={styles.optionText}>{SPIN_WORD[s]}</Text>
           </Pressable>
         ))}
       </View>

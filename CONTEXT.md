@@ -67,8 +67,9 @@ Leave.
 _Avoid_: bucket, zone, level
 
 **Spin**:
-Where the cue strikes vertically: `low` (screw), `centre` (stun), or `top` (follow).
-Kid-sized deliberately — no side spin, no 13-cell grid.
+Where the cue strikes vertically: `low`, `centre`, or `top`. The UI displays the real
+snooker words — screw, stun, top — but they stay display language only. Kid-sized
+deliberately — no side spin, no 13-cell grid.
 _Avoid_: tip, screw/stun/follow as field values
 
 **Leave**:

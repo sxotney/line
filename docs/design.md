@@ -40,6 +40,32 @@ he commits his own.
 - The Reveal shows the table with the coached order badged on the balls and the
   teaching-moment ball highlighted.
 
+### Added in M3 (2026-08-02) — the Leave and the strength slider
+
+- **The Leave**: after each committed Shot during Planning, the white slides to where
+  that shot would probably leave it, so Alex plans every next ball from the updated
+  position — real position-play thinking. Computed by a kid-plausible heuristic
+  (`predictLeave`, pure, in `src/domain/`):
+  - The pot **always succeeds** — every ball Alex chooses is treated as potted. The
+    natural pocket is the one with the straightest cut angle from the white (ties →
+    nearest).
+  - The white arrives at the ghost-ball contact point and leaves along the tangent line
+    (`centre`), bent forward toward the pot line (`top`) or pulled back (`low`).
+    Dead-straight pots: stun stops at contact, top follows through, low screws back.
+  - Travel distance scales continuously with the raw Strength value; at most one cushion
+    reflection, then stop, always clamped inside the cushions.
+  - `simulateLine(setup, shots)` replays the whole line from the start — the **Simulated
+    table**: potted reds ghost (sequence badges stay readable), colours re-spot, white at
+    the latest Leave. Derived state — undo and Try again just re-fold a shorter line.
+- **Strength slider** (replaces M2's three buttons): a continuous 0–100 slider with the
+  three bands marked on the track. Steps still coach a band (`soft`/`medium`/`firm` +
+  `acceptableStrength`); judging buckets Alex's value via `strengthBand()` and compares
+  band-to-band as in M2. The raw value drives the Leave, so the same shot at 40 vs 55
+  visibly changes where the white ends up.
+- The Leave is **display only** (ADR 0005): it reflects Alex's plan identically whatever
+  he picks, is never compared to the Coached line during Planning, and `evaluate()` and
+  the Reveal are unchanged by it.
+
 ### Out of scope — deliberately deferred
 - In-app editor (ADR 0003) · cue-ball position / "where you leave it" · side spin ·
   the final colour clearance (yellow→black, a fixed order — a position exercise, not

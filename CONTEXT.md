@@ -55,11 +55,30 @@ One entry in Alex's line: the ball he taps plus the Strength and Spin he'd play 
 with. (M2 — before M2 a line entry was just the ball.)
 
 **Strength**:
-How hard the shot is played: `soft`, `medium`, or `firm`. Kid-sized deliberately —
-coarser than Paths' four paces.
+How hard the shot is played. Alex sets it on a continuous slider (0–100); coaching and
+judging happen in three named bands — `soft`, `medium`, `firm` — marked on the track.
+(M3 — in M2 it was three buttons.)
 _Avoid_: pace, power
+
+**Strength band**:
+The named zone a slider value falls in: `soft` [0–33], `medium` (33–66], `firm` (66–100].
+Steps coach a band; the Reveal judges Alex's band against it. The raw value drives the
+Leave.
+_Avoid_: bucket, zone, level
 
 **Spin**:
 Where the cue strikes vertically: `low` (screw), `centre` (stun), or `top` (follow).
 Kid-sized deliberately — no side spin, no 13-cell grid.
 _Avoid_: tip, screw/stun/follow as field values
+
+**Leave**:
+Where a Shot leaves the white — the predicted resting spot of the cue ball, computed by
+a kid-plausible heuristic (pot always succeeds; tangent line bent by Spin; distance from
+Strength). Standard snooker usage: "a good leave".
+_Avoid_: cue position, prediction, outcome
+
+**Simulated table**:
+The table state during Planning after replaying Alex's shots so far: every chosen ball
+is potted (reds ghost, colours re-spot), and the white sits at the latest Leave. Display
+only — never judged, never compared to the Coached line before Done.
+_Avoid_: preview, feedback
